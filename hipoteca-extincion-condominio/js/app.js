@@ -169,11 +169,9 @@
   function syncHipotecaDesdeExtincion() {
     if (!ultimoResultadoExtincion) { updateResumenGlobal(); return; }
     $('hi-precio').value = ultimoResultadoExtincion.valorVivienda;
-    const pct = ultimoResultadoExtincion.valorVivienda > 0
-      ? Math.min(100, Math.round((ultimoResultadoExtincion.capitalNecesario / ultimoResultadoExtincion.valorVivienda) * 100))
-      : 80;
-    $('hi-porcentaje').value = pct;
-    $('hi-porcentaje-range').value = pct;
+    // El importe a solicitar es el capital que hace falta (deuda + compensación - aportación),
+    // NO un % de la tasación: el % es solo el resultado de dividir esto entre la tasación.
+    $('hi-importe').value = Math.round(ultimoResultadoExtincion.capitalNecesario);
     $('hi-ubicacion').value = ultimoResultadoExtincion.ubicacion;
     recalcHipoteca(); // ya llama a updateResumenGlobal() al final
   }
@@ -182,7 +180,7 @@
     const badge = $('hi-sync-status');
     if (!badge) return;
     if (hipotecaAutoSync) {
-      badge.innerHTML = '🔗 Vinculado a la Sección 1: se rellena solo. Edita el precio, % o ubicación de abajo para desvincular.';
+      badge.innerHTML = '🔗 Vinculado a la Sección 1: el importe a solicitar se rellena solo. Edita el precio, el importe o la ubicación de abajo para desvincular.';
       badge.classList.remove('desvinculado');
     } else {
       badge.innerHTML = '🔓 Desvinculado de la Sección 1 — <button type="button" id="hi-resync-btn" class="btn-link">🔗 volver a sincronizar</button>';
@@ -200,7 +198,7 @@
     hipotecaAutoSync = false;
     renderSyncBadge();
   }
-  ['hi-precio', 'hi-porcentaje', 'hi-porcentaje-range', 'hi-ubicacion'].forEach(id => {
+  ['hi-precio', 'hi-importe', 'hi-ubicacion'].forEach(id => {
     $(id).addEventListener('input', romperAutoSync);
   });
 
@@ -256,20 +254,17 @@
     const extraAnual = parseFloat($('hi-extra-anual').value) || 0;
 
     const ltvMax = producto.ltvMaxHabitual;
-    // El % nunca se bloquea a 100: el LTV "estándar" del banco es solo una referencia,
-    // porque en extinción de condominio algunos bancos sí llegan a financiar más
-    // (ver el panel de análisis por banco más abajo). Se avisa si superas el estándar.
-    $('hi-porcentaje').max = 100;
-    $('hi-porcentaje-range').max = 100;
-    let porcentaje = parseFloat($('hi-porcentaje').value) || 0;
-    if (porcentaje > 100) { porcentaje = 100; $('hi-porcentaje').value = 100; }
-    $('hi-porcentaje-range').value = porcentaje;
+    const importe = Math.max(0, parseFloat($('hi-importe').value) || 0);
+    // El importe a solicitar es el dato principal (lo que realmente hace falta pedir,
+    // p.ej. deuda + compensación de la extinción de condominio) — el % que eso supone
+    // sobre la tasación es solo un dato derivado, para avisar si se sale del LTV del banco.
+    const porcentaje = precio > 0 ? (importe / precio) * 100 : 0;
     const hintEl = $('hi-ltv-hint');
     if (porcentaje > ltvMax) {
-      hintEl.innerHTML = `⚠ Por encima del ${ltvMax}% estándar de ${banco.nombre} para este producto. Solo lo concede en casos evaluados individualmente (algunos bancos sí financian más en extinción de condominio, ver análisis más abajo) — confírmalo con el banco.`;
+      hintEl.innerHTML = `⚠ Esto supone financiar el ${Calc.pct(porcentaje, 1)} de la tasación, por encima del ${ltvMax}% estándar de ${banco.nombre} para este producto. Solo lo concede en casos evaluados individualmente (algunos bancos sí financian más en extinción de condominio, ver análisis más abajo) — confírmalo con el banco.`;
       hintEl.classList.add('hint-warning');
     } else {
-      hintEl.textContent = `Máximo estándar de ${banco.nombre} en este producto: ${ltvMax}% del valor de tasación (puedes simular por encima si el banco te lo concede).`;
+      hintEl.textContent = `Esto supone financiar el ${Calc.pct(porcentaje, 1)} de la tasación (máximo estándar de ${banco.nombre} en este producto: ${ltvMax}%).`;
       hintEl.classList.remove('hint-warning');
     }
 
@@ -287,8 +282,8 @@
       : `TIN fijo ${producto.tin}% con todas las bonificaciones · sin bonificar: ${producto.tinSinBonificar}% · vinculaciones: ${producto.vinculaciones.join(', ')}`)
       + ` · Datos consultados ${banco.fechaConsulta} (${banco.verificado}), verificar en la ficha FIPRE/FEIN oficial antes de decidir.`;
 
-    const capital = precio * (porcentaje / 100);
-    const entrada = precio - capital;
+    const capital = importe;
+    const entrada = Math.max(0, precio - capital);
     const baseImponibleImpuesto = tipoOperacion === 'extincion' ? capital : precio;
 
     const amort = Calc.amortizacionFrancesa(capital, producto.tin, plazo, extraAnual);
@@ -323,7 +318,7 @@
   }
 
   $('hi-banco').addEventListener('change', () => { populateProductoSelect(); recalcHipoteca(); });
-  ['hi-producto', 'hi-edad', 'hi-vivienda-nueva', 'hi-extra-anual']
+  ['hi-producto', 'hi-precio', 'hi-importe', 'hi-edad', 'hi-ubicacion', 'hi-vivienda-nueva', 'hi-extra-anual']
     .forEach(id => $(id).addEventListener('input', recalcHipoteca));
   $('hi-tipo-operacion').addEventListener('input', () => {
     if (hipotecaAutoSync && $('hi-tipo-operacion').value === 'extincion') {
@@ -338,7 +333,6 @@
     $(rangeId).addEventListener('input', () => { $(numberId).value = $(rangeId).value; recalcHipoteca(); });
     $(numberId).addEventListener('input', () => { $(rangeId).value = $(numberId).value; recalcHipoteca(); });
   }
-  syncPair('hi-porcentaje-range', 'hi-porcentaje');
   syncPair('hi-plazo-range', 'hi-plazo');
 
   // ---------------------------------------------------------------------

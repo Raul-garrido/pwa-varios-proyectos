@@ -242,8 +242,6 @@ table.tabla-amortizacion th, table.tabla-bancos th {
 table.tabla-amortizacion td, table.tabla-bancos td { padding: 7px 10px; border-bottom: 1px solid var(--gris-200); white-space: nowrap; }
 table.tabla-amortizacion tr:nth-child(even), table.tabla-bancos tr:nth-child(even) { background: var(--gris-100); }
 
-.analisis-bancos { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--gris-200); }
-.analisis-bancos h3 { color: var(--verde); margin-bottom: 4px; }
 td.facilidad-alta { color: var(--verde); font-weight: 700; }
 td.facilidad-media { color: var(--naranja); font-weight: 700; }
 td.facilidad-baja { color: var(--rojo); font-weight: 700; }

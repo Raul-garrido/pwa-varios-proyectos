@@ -120,9 +120,8 @@
           <input type="number" id="hi-precio" value="200000" min="0" step="1000">
         </label>
 
-        <label>% solicitado sobre el valor (financiación)
-          <input type="range" id="hi-porcentaje-range" min="1" max="100" value="80" step="1">
-          <input type="number" id="hi-porcentaje" value="80" min="1" max="100" step="1">
+        <label>Importe a solicitar (€)
+          <input type="number" id="hi-importe" value="160000" min="0" step="1000">
         </label>
         <p class="hint" id="hi-ltv-hint"></p>
 
@@ -182,18 +181,6 @@
       </div>
     </div>
 
-    <div class="analisis-bancos">
-      <h3>📊 Análisis: facilidades de cada banco en extinción de condominio</h3>
-      <p class="panel-desc">¿Qué banco financia el 100% de la compensación y cuál exige entrada? Datos recopilados de fuentes públicas y comparadores especializados (ver notas y disclaimer al pie).</p>
-      <div class="tabla-scroll">
-        <table class="tabla-bancos">
-          <thead>
-            <tr><th>Banco</th><th>Financia 100%</th><th>Entrada típica</th><th>Facilidad</th><th>Notas</th></tr>
-          </thead>
-          <tbody id="tabla-analisis-bancos"></tbody>
-        </table>
-      </div>
-    </div>
   </section>
 
   <!-- ===================== RESUMEN GLOBAL ===================== -->
@@ -208,6 +195,20 @@
       <div class="card"><span>Cuota mensual</span><strong id="rs-cuota">—</strong></div>
       <div class="card"><span>Plazo</span><strong id="rs-plazo">—</strong></div>
       <div class="card"><span>Total intereses a pagar</span><strong id="rs-intereses">—</strong></div>
+    </div>
+  </section>
+
+  <!-- ===================== ANÁLISIS DE BANCOS (extinción de condominio) ===================== -->
+  <section id="seccion-analisis-bancos" class="panel analisis-bancos">
+    <h2>📊 Análisis: facilidades de cada banco en extinción de condominio</h2>
+    <p class="panel-desc">¿Qué banco financia el 100% de la compensación y cuál exige entrada? Datos recopilados de fuentes públicas y comparadores especializados (ver notas y disclaimer al pie).</p>
+    <div class="tabla-scroll">
+      <table class="tabla-bancos">
+        <thead>
+          <tr><th>Banco</th><th>Financia 100%</th><th>Entrada típica</th><th>Facilidad</th><th>Notas</th></tr>
+        </thead>
+        <tbody id="tabla-analisis-bancos"></tbody>
+      </table>
     </div>
   </section>
 
