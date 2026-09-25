@@ -137,6 +137,11 @@ label input[type="range"] {
 }
 .sync-badge .btn-link { font-size: 0.82rem; }
 
+.hint-warning {
+  color: var(--naranja);
+  font-weight: 600;
+}
+
 .btn-link {
   background: none;
   border: none;

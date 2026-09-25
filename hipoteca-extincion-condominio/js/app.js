@@ -256,12 +256,22 @@
     const extraAnual = parseFloat($('hi-extra-anual').value) || 0;
 
     const ltvMax = producto.ltvMaxHabitual;
-    $('hi-porcentaje').max = ltvMax;
-    $('hi-porcentaje-range').max = ltvMax;
+    // El % nunca se bloquea a 100: el LTV "estándar" del banco es solo una referencia,
+    // porque en extinción de condominio algunos bancos sí llegan a financiar más
+    // (ver el panel de análisis por banco más abajo). Se avisa si superas el estándar.
+    $('hi-porcentaje').max = 100;
+    $('hi-porcentaje-range').max = 100;
     let porcentaje = parseFloat($('hi-porcentaje').value) || 0;
-    if (porcentaje > ltvMax) { porcentaje = ltvMax; $('hi-porcentaje').value = ltvMax; }
+    if (porcentaje > 100) { porcentaje = 100; $('hi-porcentaje').value = 100; }
     $('hi-porcentaje-range').value = porcentaje;
-    $('hi-ltv-hint').textContent = `Máximo financiable por ${banco.nombre} en este producto: ${ltvMax}% del valor de tasación.`;
+    const hintEl = $('hi-ltv-hint');
+    if (porcentaje > ltvMax) {
+      hintEl.innerHTML = `⚠ Por encima del ${ltvMax}% estándar de ${banco.nombre} para este producto. Solo lo concede en casos evaluados individualmente (algunos bancos sí financian más en extinción de condominio, ver análisis más abajo) — confírmalo con el banco.`;
+      hintEl.classList.add('hint-warning');
+    } else {
+      hintEl.textContent = `Máximo estándar de ${banco.nombre} en este producto: ${ltvMax}% del valor de tasación (puedes simular por encima si el banco te lo concede).`;
+      hintEl.classList.remove('hint-warning');
+    }
 
     const plazoMaxPorEdad = Math.max(1, producto.edadMaxima - edad);
     const plazoMax = Math.min(producto.plazoMaxAnios, plazoMaxPorEdad);
