@@ -224,6 +224,7 @@
   }
 
   let ultimoResultadoHipoteca = null;
+  let plazoAutoMax = true; // por defecto el plazo se simula al máximo del producto; se desactiva si el usuario lo edita a mano
 
   function gastosHipoteca({ producto, capital, precio, tipoOperacion, ubicacion, viviendaNueva, baseImponibleImpuesto }) {
     const fisc = FISCALIDAD[ubicacion];
@@ -296,10 +297,20 @@
     const plazoMax = Math.min(producto.plazoMaxAnios, plazoMaxPorEdad);
     $('hi-plazo').max = plazoMax;
     $('hi-plazo-range').max = plazoMax;
-    let plazo = parseFloat($('hi-plazo').value) || 1;
-    if (plazo > plazoMax) { plazo = plazoMax; $('hi-plazo').value = plazoMax; }
+    let plazo;
+    if (plazoAutoMax) {
+      // Por defecto, el plazo se pone al máximo que permite el producto (la cuota
+      // más baja posible). Se queda así hasta que el usuario lo toque a mano.
+      plazo = plazoMax;
+    } else {
+      plazo = parseFloat($('hi-plazo').value) || 1;
+      if (plazo > plazoMax) plazo = plazoMax; // nunca por encima del máximo actual
+    }
+    $('hi-plazo').value = plazo;
     $('hi-plazo-range').value = plazo;
-    $('hi-plazo-hint').textContent = `Plazo máximo: ${producto.plazoMaxAnios} años, limitado a ${plazoMax} años por la edad máxima del banco (${producto.edadMaxima} años).`;
+    $('hi-plazo-hint').textContent = plazoMax < producto.plazoMaxAnios
+      ? `Plazo máximo del producto: ${producto.plazoMaxAnios} años, pero se limita a ${plazoMax} por tu edad (máxima permitida: ${producto.edadMaxima} años). Por defecto se simula al máximo — puedes reducirlo.`
+      : `Plazo máximo del producto: ${producto.plazoMaxAnios} años. Por defecto se simula al máximo — puedes reducirlo.`;
 
     $('hi-producto-info').textContent = (producto.tipo === 'variable'
       ? `TIN ${producto.tin}% (Euríbor + ${producto.diferencial}%) con todas las bonificaciones · sin bonificar: ${producto.tinSinBonificar}% · vinculaciones: ${producto.vinculaciones.join(', ')}`
@@ -364,8 +375,9 @@
     updateResumenGlobal();
   }
 
-  $('hi-banco').addEventListener('change', () => { populateProductoSelect(); recalcHipoteca(); });
-  ['hi-producto', 'hi-precio', 'hi-importe', 'hi-edad', 'hi-ubicacion', 'hi-vivienda-nueva', 'hi-extra-anual']
+  $('hi-banco').addEventListener('change', () => { populateProductoSelect(); plazoAutoMax = true; recalcHipoteca(); });
+  $('hi-producto').addEventListener('input', () => { plazoAutoMax = true; recalcHipoteca(); });
+  ['hi-precio', 'hi-importe', 'hi-edad', 'hi-ubicacion', 'hi-vivienda-nueva', 'hi-extra-anual']
     .forEach(id => $(id).addEventListener('input', recalcHipoteca));
   $('hi-tipo-operacion').addEventListener('input', () => {
     if (hipotecaAutoSync && $('hi-tipo-operacion').value === 'extincion') {
@@ -375,12 +387,10 @@
     }
   });
 
-  // sliders <-> number inputs sincronizados
-  function syncPair(rangeId, numberId) {
-    $(rangeId).addEventListener('input', () => { $(numberId).value = $(rangeId).value; recalcHipoteca(); });
-    $(numberId).addEventListener('input', () => { $(rangeId).value = $(numberId).value; recalcHipoteca(); });
-  }
-  syncPair('hi-plazo-range', 'hi-plazo');
+  // slider <-> número del plazo sincronizados; tocar cualquiera de los dos
+  // desactiva el "siempre al máximo" para respetar el valor elegido a mano.
+  $('hi-plazo-range').addEventListener('input', () => { plazoAutoMax = false; $('hi-plazo').value = $('hi-plazo-range').value; recalcHipoteca(); });
+  $('hi-plazo').addEventListener('input', () => { plazoAutoMax = false; $('hi-plazo-range').value = $('hi-plazo').value; recalcHipoteca(); });
 
   // ---------------------------------------------------------------------
   // ANÁLISIS DE BANCOS EN EXTINCIÓN DE CONDOMINIO
