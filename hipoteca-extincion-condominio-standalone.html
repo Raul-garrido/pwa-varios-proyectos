@@ -445,7 +445,7 @@ td.facilidad-baja { color: var(--rojo); font-weight: 700; }
       <div class="result-col">
         <h3>Resultado de la simulación</h3>
         <div class="stat-row"><span>Capital solicitado</span><strong id="hi-capital">—</strong></div>
-        <div class="stat-row"><span>Entrada / fondos propios necesarios</span><strong id="hi-entrada">—</strong></div>
+        <div class="stat-row"><span id="hi-entrada-label">Entrada / fondos propios necesarios</span><strong id="hi-entrada">—</strong></div>
         <div class="stat-row"><span>Tipo de interés aplicado (TIN)</span><strong id="hi-tin">—</strong></div>
         <div class="stat-row highlight"><span>Cuota mensual</span><strong id="hi-cuota">—</strong></div>
         <div class="stat-row"><span>Total intereses del préstamo</span><strong id="hi-intereses">—</strong></div>
@@ -1262,13 +1262,29 @@ const BANCOS_RESUMEN_METODOLOGICO = `Tras una segunda ronda de investigación mu
       + ` · Datos consultados ${banco.fechaConsulta} (${banco.verificado}), verificar en la ficha FIPRE/FEIN oficial antes de decidir.`;
 
     const capital = importe;
-    const entrada = Math.max(0, precio - capital);
+    // "Entrada" solo significa "precio - préstamo" en una COMPRA normal. En una
+    // extinción de condominio no se compra la vivienda a precio de mercado (ya eres
+    // copropietario): el préstamo cubre exactamente lo que hace falta (deuda +
+    // compensación, calculado en la Sección 1). Aquí solo hay un hueco a cubrir con
+    // fondos propios si pides MENOS de lo que la Sección 1 dice que necesitas.
+    let entrada, entradaLabel;
+    if (tipoOperacion === 'extincion') {
+      const necesario = ultimoResultadoExtincion ? ultimoResultadoExtincion.capitalNecesario : capital;
+      entrada = Math.max(0, necesario - capital);
+      entradaLabel = entrada > 0
+        ? 'Fondos propios que faltan (pides menos de lo necesario en la Sección 1)'
+        : 'Fondos propios adicionales necesarios';
+    } else {
+      entrada = Math.max(0, precio - capital);
+      entradaLabel = 'Entrada (precio − importe solicitado)';
+    }
     const baseImponibleImpuesto = tipoOperacion === 'extincion' ? capital : precio;
 
     const amort = Calc.amortizacionFrancesa(capital, producto.tin, plazo, extraAnual);
 
     $('hi-capital').textContent = Calc.euro(capital);
     $('hi-entrada').textContent = Calc.euro(entrada);
+    $('hi-entrada-label').textContent = entradaLabel;
     $('hi-tin').textContent = Calc.pct(producto.tin);
     $('hi-cuota').textContent = Calc.euro2(amort.cuotaMensual) + ' /mes';
     $('hi-intereses').textContent = Calc.euro(amort.totalIntereses);
