@@ -76,7 +76,7 @@
         <div class="stat-row"><span>Capital pendiente de hipoteca asumido</span><strong id="ec-hipoteca-asumida">—</strong></div>
         <div class="stat-row highlight"><span>Capital necesario a financiar</span><strong id="ec-capital-necesario">—</strong></div>
 
-        <button type="button" id="ec-usar-en-hipoteca" class="btn-secondary">⬇ Usar este importe como capital en el simulador de hipoteca</button>
+        <p class="hint">⬇ El capital necesario se traslada automáticamente al simulador de hipoteca de la Sección 2.</p>
 
         <h3>Gastos de la extinción de condominio</h3>
         <table class="tabla-gastos">
@@ -104,6 +104,8 @@
             <option value="compra">Compra de vivienda (hipoteca nueva)</option>
           </select>
         </label>
+
+        <p id="hi-sync-status" class="sync-badge"></p>
 
         <label>Banco
           <select id="hi-banco"></select>

@@ -80,6 +80,7 @@
   // SECCIÓN 1: EXTINCIÓN DE CONDOMINIO
   // ---------------------------------------------------------------------
   let ultimoResultadoExtincion = null;
+  let hipotecaAutoSync = true; // mientras esté activo, la Sección 2 se rellena sola desde la Sección 1
 
   function gastosExtincion({ baseImponibleAJD, ubicacion, excesoNoProporcional, requiereTasacion }) {
     const fisc = FISCALIDAD[ubicacion];
@@ -151,14 +152,22 @@
       valorVivienda, hipotecaPendiente, compensacionTotal: r.compensacionTotal,
       capitalNecesario: Math.max(r.capitalNecesario, 0), totalGastos, ubicacion
     };
-    updateResumenGlobal();
+
+    if (hipotecaAutoSync && $('hi-tipo-operacion').value === 'extincion') {
+      syncHipotecaDesdeExtincion();
+    } else {
+      updateResumenGlobal();
+    }
   }
 
   ['ec-valor', 'ec-hipoteca-pendiente', 'ec-aportacion', 'ec-ubicacion', 'ec-exceso-no-proporcional', 'ec-requiere-tasacion']
     .forEach(id => $(id).addEventListener('input', recalcExtincion));
 
-  $('ec-usar-en-hipoteca').addEventListener('click', () => {
-    if (!ultimoResultadoExtincion) return;
+  // Traslada el capital calculado en la Sección 1 a los campos de la Sección 2,
+  // sin que el usuario tenga que hacer nada más. Se llama sola cada vez que
+  // cambia algo en la extinción de condominio, mientras `hipotecaAutoSync` esté activo.
+  function syncHipotecaDesdeExtincion() {
+    if (!ultimoResultadoExtincion) { updateResumenGlobal(); return; }
     $('hi-precio').value = ultimoResultadoExtincion.valorVivienda;
     const pct = ultimoResultadoExtincion.valorVivienda > 0
       ? Math.min(100, Math.round((ultimoResultadoExtincion.capitalNecesario / ultimoResultadoExtincion.valorVivienda) * 100))
@@ -166,9 +175,33 @@
     $('hi-porcentaje').value = pct;
     $('hi-porcentaje-range').value = pct;
     $('hi-ubicacion').value = ultimoResultadoExtincion.ubicacion;
-    $('hi-tipo-operacion').value = 'extincion';
-    recalcHipoteca();
-    document.getElementById('seccion-hipoteca').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    recalcHipoteca(); // ya llama a updateResumenGlobal() al final
+  }
+
+  function renderSyncBadge() {
+    const badge = $('hi-sync-status');
+    if (!badge) return;
+    if (hipotecaAutoSync) {
+      badge.innerHTML = '🔗 Vinculado a la Sección 1: se rellena solo. Edita el precio, % o ubicación de abajo para desvincular.';
+      badge.classList.remove('desvinculado');
+    } else {
+      badge.innerHTML = '🔓 Desvinculado de la Sección 1 — <button type="button" id="hi-resync-btn" class="btn-link">🔗 volver a sincronizar</button>';
+      badge.classList.add('desvinculado');
+      $('hi-resync-btn').addEventListener('click', () => {
+        hipotecaAutoSync = true;
+        renderSyncBadge();
+        syncHipotecaDesdeExtincion();
+      });
+    }
+  }
+
+  function romperAutoSync() {
+    if (!hipotecaAutoSync) return;
+    hipotecaAutoSync = false;
+    renderSyncBadge();
+  }
+  ['hi-precio', 'hi-porcentaje', 'hi-porcentaje-range', 'hi-ubicacion'].forEach(id => {
+    $(id).addEventListener('input', romperAutoSync);
   });
 
   // ---------------------------------------------------------------------
@@ -280,8 +313,15 @@
   }
 
   $('hi-banco').addEventListener('change', () => { populateProductoSelect(); recalcHipoteca(); });
-  ['hi-producto', 'hi-tipo-operacion', 'hi-precio', 'hi-edad', 'hi-ubicacion', 'hi-vivienda-nueva', 'hi-extra-anual']
+  ['hi-producto', 'hi-edad', 'hi-vivienda-nueva', 'hi-extra-anual']
     .forEach(id => $(id).addEventListener('input', recalcHipoteca));
+  $('hi-tipo-operacion').addEventListener('input', () => {
+    if (hipotecaAutoSync && $('hi-tipo-operacion').value === 'extincion') {
+      syncHipotecaDesdeExtincion();
+    } else {
+      recalcHipoteca();
+    }
+  });
 
   // sliders <-> number inputs sincronizados
   function syncPair(rangeId, numberId) {
@@ -375,8 +415,8 @@
   populateBancoSelect();
   populateProductoSelect();
   renderAnalisisBancos();
+  renderSyncBadge();
   recalcExtincion();
-  recalcHipoteca();
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {

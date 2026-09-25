@@ -122,6 +122,21 @@ label input[type="range"] {
   color: var(--gris-600);
 }
 
+.sync-badge {
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--verde-fondo);
+  color: var(--verde);
+  margin: -6px 0 16px;
+}
+.sync-badge.desvinculado {
+  background: #fdf1e7;
+  color: var(--naranja);
+}
+.sync-badge .btn-link { font-size: 0.82rem; }
+
 .btn-link {
   background: none;
   border: none;

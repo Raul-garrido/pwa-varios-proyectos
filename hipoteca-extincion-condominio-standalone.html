@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simulador de Extinción de Condominio e Hipoteca</title>
+<meta name="description" content="Simula una extinción de condominio real y compara hipotecas de los principales bancos españoles, con todos los gastos incluidos.">
+<meta name="theme-color" content="#0f5c4c">
+<style>
+:root {
+  --verde: #0f5c4c;
+  --verde-claro: #14895f;
+  --verde-fondo: #e8f5f0;
+  --azul: #1a4b8c;
+  --naranja: #c9622a;
+  --gris-100: #f7f8fa;
+  --gris-200: #eceff2;
+  --gris-400: #b9c0c8;
+  --gris-600: #667080;
+  --gris-800: #2a313c;
+  --rojo: #b23b3b;
+  --radio: 12px;
+  --sombra: 0 2px 10px rgba(20, 30, 40, 0.08);
+  font-size: 16px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: var(--gris-100);
+  color: var(--gris-800);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app-header {
+  background: linear-gradient(135deg, var(--verde) 0%, var(--verde-claro) 100%);
+  color: #fff;
+  padding: 28px 20px 32px;
+  text-align: center;
+}
+.app-header h1 { margin: 0 0 6px; font-size: 1.5rem; }
+.app-header .subtitle { margin: 0; opacity: 0.9; font-size: 0.95rem; }
+
+main {
+  max-width: 1100px;
+  margin: -18px auto 0;
+  padding: 0 16px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.panel {
+  background: #fff;
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  padding: 22px 20px 26px;
+}
+
+.panel h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.25rem;
+  margin: 0 0 4px;
+  color: var(--verde);
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--verde);
+  color: #fff;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+.panel-desc { color: var(--gris-600); margin: 4px 0 18px; font-size: 0.92rem; }
+
+.grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+}
+@media (max-width: 760px) {
+  .grid-2col { grid-template-columns: 1fr; }
+}
+
+label {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--gris-800);
+  margin-bottom: 14px;
+}
+label input[type="number"],
+label input[type="text"],
+select {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--gris-400);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 400;
+  background: #fff;
+  color: var(--gris-800);
+}
+label input[type="range"] {
+  width: 100%;
+  margin-top: 8px;
+  accent-color: var(--verde-claro);
+}
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-weight: 400;
+  font-size: 0.88rem;
+}
+.checkbox-label input { margin-top: 3px; width: 16px; height: 16px; flex-shrink: 0; }
+
+.hint {
+  margin: -8px 0 14px;
+  font-size: 0.8rem;
+  color: var(--gris-600);
+}
+
+.sync-badge {
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--verde-fondo);
+  color: var(--verde);
+  margin: -6px 0 16px;
+}
+.sync-badge.desvinculado {
+  background: #fdf1e7;
+  color: var(--naranja);
+}
+.sync-badge .btn-link { font-size: 0.82rem; }
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--verde-claro);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+  font-size: 0.88rem;
+}
+.btn-secondary {
+  width: 100%;
+  padding: 10px 14px;
+  margin: 6px 0 20px;
+  background: var(--verde-fondo);
+  border: 1px solid var(--verde-claro);
+  color: var(--verde);
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.88rem;
+}
+.btn-secondary:hover { background: #d6efe5; }
+
+fieldset.propietarios-fieldset {
+  border: 1px solid var(--gris-200);
+  border-radius: 10px;
+  padding: 12px 14px 4px;
+  margin-bottom: 16px;
+}
+fieldset.propietarios-fieldset legend {
+  font-weight: 700;
+  padding: 0 6px;
+  font-size: 0.85rem;
+  color: var(--verde);
+}
+.propietario-row {
+  display: grid;
+  grid-template-columns: 1fr 90px 32px;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.propietario-row input { padding: 8px 10px; border: 1px solid var(--gris-400); border-radius: 6px; font-size: 0.88rem; }
+.propietario-row .btn-remove {
+  background: none; border: none; color: var(--rojo); font-size: 1.1rem; cursor: pointer;
+  width: 32px; height: 32px;
+}
+
+.result-col h3 {
+  font-size: 1rem;
+  color: var(--gris-800);
+  margin: 0 0 12px;
+}
+.detalle-list { margin-bottom: 14px; }
+.detalle-item {
+  background: var(--gris-100);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+}
+.detalle-item strong { display: block; margin-bottom: 2px; }
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--gris-200);
+  font-size: 0.92rem;
+}
+.stat-row span { color: var(--gris-600); }
+.stat-row strong { font-size: 1rem; color: var(--gris-800); }
+.stat-row.highlight {
+  background: var(--verde-fondo);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 6px 0;
+  border-bottom: none;
+}
+.stat-row.highlight strong { color: var(--verde); font-size: 1.15rem; }
+
+table.tabla-gastos { width: 100%; border-collapse: collapse; font-size: 0.87rem; margin-top: 6px; }
+table.tabla-gastos td { padding: 7px 4px; border-bottom: 1px solid var(--gris-200); }
+table.tabla-gastos td:last-child { text-align: right; font-weight: 600; white-space: nowrap; }
+table.tabla-gastos tr.total-row td { font-weight: 700; border-top: 2px solid var(--gris-800); border-bottom: none; padding-top: 10px; color: var(--verde); }
+.nota-fiscal { font-size: 0.78rem; color: var(--gris-600); margin-top: 10px; }
+
+details.tabla-amortizacion-details { margin: 18px 0; }
+details summary {
+  cursor: pointer; font-weight: 600; color: var(--verde-claro); font-size: 0.9rem; padding: 6px 0;
+}
+.tabla-scroll { max-height: 320px; overflow-y: auto; margin-top: 8px; border: 1px solid var(--gris-200); border-radius: 8px; }
+table.tabla-amortizacion, table.tabla-bancos { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+table.tabla-amortizacion th, table.tabla-bancos th {
+  position: sticky; top: 0; background: var(--gris-800); color: #fff; padding: 8px 10px; text-align: left; font-size: 0.78rem;
+}
+table.tabla-amortizacion td, table.tabla-bancos td { padding: 7px 10px; border-bottom: 1px solid var(--gris-200); white-space: nowrap; }
+table.tabla-amortizacion tr:nth-child(even), table.tabla-bancos tr:nth-child(even) { background: var(--gris-100); }
+
+.analisis-bancos { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--gris-200); }
+.analisis-bancos h3 { color: var(--verde); margin-bottom: 4px; }
+td.facilidad-alta { color: var(--verde); font-weight: 700; }
+td.facilidad-media { color: var(--naranja); font-weight: 700; }
+td.facilidad-baja { color: var(--rojo); font-weight: 700; }
+
+.resumen-global { background: linear-gradient(135deg, #14243a 0%, #1a4b8c 100%); color: #fff; }
+.resumen-global h2 { color: #fff; }
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+.card {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 10px;
+  padding: 16px;
+}
+.card span { display: block; font-size: 0.78rem; opacity: 0.8; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.03em; }
+.card strong { font-size: 1.4rem; }
+.card.total-card { background: rgba(201, 98, 42, 0.25); border-color: var(--naranja); }
+.card.entrada-card { background: rgba(178, 59, 59, 0.2); border-color: var(--rojo); }
+.card.capital-card { background: rgba(15, 138, 90, 0.3); border-color: var(--verde-claro); }
+
+.app-footer {
+  max-width: 1100px;
+  margin: 0 auto 30px;
+  padding: 0 16px;
+  font-size: 0.78rem;
+  color: var(--gris-600);
+}
+.app-footer a { color: var(--verde-claro); }
+
+#fuentes-modal {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  display: none; align-items: center; justify-content: center; padding: 20px; z-index: 50;
+}
+#fuentes-modal.open { display: flex; }
+#fuentes-modal .modal-box {
+  background: #fff; border-radius: 12px; padding: 22px; max-width: 640px; max-height: 80vh; overflow-y: auto;
+}
+#fuentes-modal .modal-box h3 { margin-top: 0; color: var(--verde); }
+#fuentes-modal .modal-box ul { padding-left: 18px; font-size: 0.85rem; }
+#fuentes-modal .modal-box a { color: var(--verde-claro); }
+#fuentes-modal .cerrar-modal {
+  float: right; background: var(--gris-200); border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer;
+}
+
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <h1>🏠 Extinción de condominio + Comparador de hipotecas</h1>
+  <p class="subtitle">Simula el reparto, los impuestos y la nueva hipoteca en una sola pantalla</p>
+</header>
+
+<main>
+
+  <!-- ===================== SECCIÓN 1: EXTINCIÓN DE CONDOMINIO ===================== -->
+  <section id="seccion-extincion" class="panel">
+    <h2><span class="badge">1</span> Simulador de extinción de condominio</h2>
+    <p class="panel-desc">Calcula cuánto debe compensar quien se queda la vivienda a los demás copropietarios, y todos los gastos e impuestos de la operación.</p>
+
+    <div class="grid-2col">
+      <div class="form-col">
+
+        <label>Valor de tasación / mercado de la vivienda
+          <input type="number" id="ec-valor" value="300000" min="0" step="1000">
+        </label>
+
+        <label>Hipoteca pendiente (capital vivo actual)
+          <input type="number" id="ec-hipoteca-pendiente" value="150000" min="0" step="1000">
+        </label>
+
+        <fieldset class="propietarios-fieldset">
+          <legend>Copropietarios</legend>
+          <div id="ec-propietarios-list"></div>
+          <button type="button" id="ec-add-propietario" class="btn-link">+ Añadir copropietario</button>
+        </fieldset>
+
+        <label>¿Quién se queda la vivienda?
+          <select id="ec-quien-se-queda"></select>
+        </label>
+
+        <label>Aportación propia en efectivo (opcional, reduce lo que hay que financiar)
+          <input type="number" id="ec-aportacion" value="0" min="0" step="500">
+        </label>
+
+        <label>Ubicación de la vivienda (ajusta impuestos)
+          <select id="ec-ubicacion">
+            <option value="madrid" selected>Comunidad de Madrid — Alcalá de Henares</option>
+            <option value="clm">Castilla-La Mancha — Guadalajara</option>
+          </select>
+        </label>
+
+        <label class="checkbox-label">
+          <input type="checkbox" id="ec-exceso-no-proporcional">
+          <span>El reparto <strong>no</strong> es proporcional a las cuotas de titularidad (exceso de adjudicación no ajustado: puede devengar plusvalía municipal e ITP en la parte no proporcional)</span>
+        </label>
+
+        <label class="checkbox-label">
+          <input type="checkbox" id="ec-requiere-tasacion" checked>
+          <span>El banco exige nueva tasación de la vivienda</span>
+        </label>
+      </div>
+
+      <div class="result-col">
+        <h3>Reparto entre copropietarios</h3>
+        <div id="ec-detalle-salientes" class="detalle-list"></div>
+
+        <div class="stat-row"><span>Compensación total a pagar a los salientes</span><strong id="ec-compensacion-total">—</strong></div>
+        <div class="stat-row"><span>Capital pendiente de hipoteca asumido</span><strong id="ec-hipoteca-asumida">—</strong></div>
+        <div class="stat-row highlight"><span>Capital necesario a financiar</span><strong id="ec-capital-necesario">—</strong></div>
+
+        <p class="hint">⬇ El capital necesario se traslada automáticamente al simulador de hipoteca de la Sección 2.</p>
+
+        <h3>Gastos de la extinción de condominio</h3>
+        <table class="tabla-gastos">
+          <tbody id="ec-tabla-gastos"></tbody>
+          <tfoot>
+            <tr class="total-row"><td>Total gastos extinción</td><td id="ec-total-gastos">—</td></tr>
+          </tfoot>
+        </table>
+        <p class="nota-fiscal" id="ec-nota-fiscal"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== SECCIÓN 2: COMPARADOR DE HIPOTECAS ===================== -->
+  <section id="seccion-hipoteca" class="panel">
+    <h2><span class="badge">2</span> Comparador y simulador de hipotecas</h2>
+    <p class="panel-desc">Elige banco y producto, ajusta las variables dentro de los límites del banco, y simula la cuota y los gastos.</p>
+
+    <div class="grid-2col">
+      <div class="form-col">
+
+        <label>Tipo de operación
+          <select id="hi-tipo-operacion">
+            <option value="extincion" selected>Ampliación/subrogación por extinción de condominio</option>
+            <option value="compra">Compra de vivienda (hipoteca nueva)</option>
+          </select>
+        </label>
+
+        <p id="hi-sync-status" class="sync-badge"></p>
+
+        <label>Banco
+          <select id="hi-banco"></select>
+        </label>
+
+        <label>Producto hipotecario
+          <select id="hi-producto"></select>
+        </label>
+        <p class="hint" id="hi-producto-info"></p>
+
+        <label>Precio / valor de tasación de la vivienda
+          <input type="number" id="hi-precio" value="300000" min="0" step="1000">
+        </label>
+
+        <label>% solicitado sobre el valor (financiación)
+          <input type="range" id="hi-porcentaje-range" min="1" max="100" value="80" step="1">
+          <input type="number" id="hi-porcentaje" value="80" min="1" max="100" step="1">
+        </label>
+        <p class="hint" id="hi-ltv-hint"></p>
+
+        <label>Edad actual del solicitante
+          <input type="number" id="hi-edad" value="35" min="18" max="85" step="1">
+        </label>
+
+        <label>Plazo (años)
+          <input type="range" id="hi-plazo-range" min="1" max="40" value="30" step="1">
+          <input type="number" id="hi-plazo" value="30" min="1" max="40" step="1">
+        </label>
+        <p class="hint" id="hi-plazo-hint"></p>
+
+        <label>Amortización anticipada anual (opcional)
+          <input type="number" id="hi-extra-anual" value="0" min="0" step="500">
+        </label>
+
+        <label>Ubicación de la vivienda (ajusta impuestos)
+          <select id="hi-ubicacion">
+            <option value="madrid" selected>Comunidad de Madrid — Alcalá de Henares</option>
+            <option value="clm">Castilla-La Mancha — Guadalajara</option>
+          </select>
+        </label>
+
+        <label class="checkbox-label">
+          <input type="checkbox" id="hi-vivienda-nueva">
+          <span>Vivienda de obra nueva (aplica IVA + AJD en vez de ITP, solo si es "Compra")</span>
+        </label>
+      </div>
+
+      <div class="result-col">
+        <h3>Resultado de la simulación</h3>
+        <div class="stat-row"><span>Capital solicitado</span><strong id="hi-capital">—</strong></div>
+        <div class="stat-row"><span>Entrada / fondos propios necesarios</span><strong id="hi-entrada">—</strong></div>
+        <div class="stat-row"><span>Tipo de interés aplicado (TIN)</span><strong id="hi-tin">—</strong></div>
+        <div class="stat-row highlight"><span>Cuota mensual</span><strong id="hi-cuota">—</strong></div>
+        <div class="stat-row"><span>Total intereses del préstamo</span><strong id="hi-intereses">—</strong></div>
+        <div class="stat-row"><span>Total pagado (capital + intereses)</span><strong id="hi-total-pagado">—</strong></div>
+
+        <details class="tabla-amortizacion-details">
+          <summary>Ver cuadro de amortización anual</summary>
+          <div class="tabla-scroll">
+            <table class="tabla-amortizacion">
+              <thead><tr><th>Año</th><th>Cuota anual</th><th>Intereses</th><th>Amortizado</th><th>Pendiente</th></tr></thead>
+              <tbody id="hi-tabla-amortizacion"></tbody>
+            </table>
+          </div>
+        </details>
+
+        <h3>Gastos asociados a la hipoteca</h3>
+        <table class="tabla-gastos">
+          <tbody id="hi-tabla-gastos"></tbody>
+          <tfoot>
+            <tr class="total-row"><td>Total gastos hipoteca</td><td id="hi-total-gastos">—</td></tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div class="analisis-bancos">
+      <h3>📊 Análisis: facilidades de cada banco en extinción de condominio</h3>
+      <p class="panel-desc">¿Qué banco financia el 100% de la compensación y cuál exige entrada? Datos recopilados de fuentes públicas y comparadores especializados (ver notas y disclaimer al pie).</p>
+      <div class="tabla-scroll">
+        <table class="tabla-bancos">
+          <thead>
+            <tr><th>Banco</th><th>Financia 100%</th><th>Entrada típica</th><th>Facilidad</th><th>Notas</th></tr>
+          </thead>
+          <tbody id="tabla-analisis-bancos"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== RESUMEN GLOBAL ===================== -->
+  <section id="seccion-resumen" class="panel resumen-global">
+    <h2>📋 Resumen global</h2>
+    <div class="cards-grid">
+      <div class="card"><span>Total gastos extinción</span><strong id="rs-gastos-extincion">—</strong></div>
+      <div class="card"><span>Total gastos hipoteca</span><strong id="rs-gastos-hipoteca">—</strong></div>
+      <div class="card total-card"><span>TOTAL GASTOS</span><strong id="rs-total-gastos">—</strong></div>
+      <div class="card entrada-card"><span>Entrada / efectivo a aportar</span><strong id="rs-entrada">—</strong></div>
+      <div class="card capital-card"><span>Capital final de la hipoteca</span><strong id="rs-capital-final">—</strong></div>
+      <div class="card"><span>Cuota mensual</span><strong id="rs-cuota">—</strong></div>
+      <div class="card"><span>Plazo</span><strong id="rs-plazo">—</strong></div>
+      <div class="card"><span>Total intereses a pagar</span><strong id="rs-intereses">—</strong></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="app-footer">
+  <p><strong>⚠️ Aviso:</strong> Herramienta orientativa, no sustituye el asesoramiento de notaría, gestoría ni un asesor fiscal. Los aranceles notariales/registrales, tipos de interés y condiciones bancarias son estimaciones sujetas a cambio; confirma siempre las cifras exactas antes de decidir. Ver fuentes y fecha de la investigación en <a href="#" id="link-fuentes">notas de datos</a>.</p>
+</footer>
+
+<div id="fuentes-modal">
+  <div class="modal-box">
+    <button type="button" class="cerrar-modal" id="cerrar-fuentes">Cerrar ✕</button>
+    <h3>Notas y fuentes de los datos</h3>
+    <div id="fuentes-contenido"></div>
+  </div>
+</div>
+
+<script>
+/* Motor de cálculo: amortización francesa, aranceles notariales/registrales
+   orientativos y lógica de extinción de condominio. Sin dependencias. */
+
+const Calc = (() => {
+
+  function euro(n) {
+    if (!isFinite(n)) return '—';
+    return n.toLocaleString('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+  }
+  function euro2(n) {
+    if (!isFinite(n)) return '—';
+    return n.toLocaleString('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 });
+  }
+  function pct(n, dec = 2) {
+    if (!isFinite(n)) return '—';
+    return n.toLocaleString('es-ES', { minimumFractionDigits: dec, maximumFractionDigits: dec }) + ' %';
+  }
+
+  // Arancel notarial orientativo (escala RD 1426/1989 simplificada, tipos marginales por tramo de cuantía)
+  function arancelNotarial(valor) {
+    if (valor <= 0) return 90.15;
+    const tramos = [
+      { limite: 6010.12, base: 90.15, tipo: 0 },
+      { limite: 30050.61, base: 90.15, tipo: 0.0045 },
+      { limite: 60101.21, base: 90.15 + 0.0045 * (30050.61 - 6010.12), tipo: 0.003 },
+      { limite: 150253.03, base: 90.15 + 0.0045 * (30050.61 - 6010.12) + 0.003 * (60101.21 - 30050.61), tipo: 0.002 },
+      { limite: 601012.10, base: 90.15 + 0.0045 * (30050.61 - 6010.12) + 0.003 * (60101.21 - 30050.61) + 0.002 * (150253.03 - 60101.21), tipo: 0.001 },
+      { limite: Infinity, base: 90.15 + 0.0045 * (30050.61 - 6010.12) + 0.003 * (60101.21 - 30050.61) + 0.002 * (150253.03 - 60101.21) + 0.001 * (601012.10 - 150253.03), tipo: 0.00065 },
+    ];
+    let honorario = 90.15;
+    for (let i = 0; i < tramos.length; i++) {
+      const inf = i === 0 ? 0 : tramos[i - 1].limite;
+      if (valor > inf) {
+        const tramoActual = tramos[i];
+        const excesoInf = i === 0 ? 0 : inf;
+        honorario = tramoActual.base + tramoActual.tipo * (Math.min(valor, tramoActual.limite) - excesoInf);
+      }
+    }
+    // Suplidos aproximados: folios, copias, diligencias
+    const suplidos = 60;
+    return Math.round((honorario + suplidos) * 100) / 100;
+  }
+
+  // Arancel registral orientativo (escala RD 1427/1989 simplificada)
+  function arancelRegistral(valor) {
+    if (valor <= 0) return 24.04;
+    const tramos = [
+      { limite: 6010.12, base: 24.04, tipo: 0 },
+      { limite: 30050.61, base: 24.04, tipo: 0.0175 },
+      { limite: 60101.21, base: 24.04 + 0.0175 * (30050.61 - 6010.12), tipo: 0.0125 },
+      { limite: 150253.03, base: 24.04 + 0.0175 * (30050.61 - 6010.12) + 0.0125 * (60101.21 - 30050.61), tipo: 0.0075 },
+      { limite: 601012.10, base: 24.04 + 0.0175 * (30050.61 - 6010.12) + 0.0125 * (60101.21 - 30050.61) + 0.0075 * (150253.03 - 60101.21), tipo: 0.003 },
+      { limite: Infinity, base: 24.04 + 0.0175 * (30050.61 - 6010.12) + 0.0125 * (60101.21 - 30050.61) + 0.0075 * (150253.03 - 60101.21) + 0.003 * (601012.10 - 150253.03), tipo: 0.002 },
+    ];
+    let honorario = 24.04;
+    for (let i = 0; i < tramos.length; i++) {
+      const inf = i === 0 ? 0 : tramos[i - 1].limite;
+      if (valor > inf) {
+        const tramoActual = tramos[i];
+        const excesoInf = i === 0 ? 0 : inf;
+        honorario = tramoActual.base + tramoActual.tipo * (Math.min(valor, tramoActual.limite) - excesoInf);
+      }
+    }
+    // Bonificación legal habitual del 5% sobre honorarios + suplidos aprox
+    honorario = honorario * 0.95;
+    const suplidos = 30;
+    return Math.round((honorario + suplidos) * 100) / 100;
+  }
+
+  // Sistema de amortización francés (cuota constante)
+  function amortizacionFrancesa(capital, tinAnualPct, anios, extraAnual = 0) {
+    const n = Math.round(anios * 12);
+    const i = (tinAnualPct / 100) / 12;
+    if (capital <= 0 || n <= 0) {
+      return { cuotaMensual: 0, totalIntereses: 0, totalPagado: 0, tablaAnual: [], anosReales: 0 };
+    }
+    const cuota = i === 0 ? capital / n : capital * i / (1 - Math.pow(1 + i, -n));
+    let pendiente = capital;
+    let totalIntereses = 0;
+    let totalAmortizado = 0;
+    const tablaAnual = [];
+    let mes = 0;
+    let anio = 0;
+    while (pendiente > 0.5 && mes < n + 1200) {
+      let interesesAnio = 0;
+      let amortizadoAnio = 0;
+      let cuotaAnio = 0;
+      anio++;
+      for (let m = 1; m <= 12 && pendiente > 0.5 && mes < n; m++) {
+        mes++;
+        const interesMes = pendiente * i;
+        let amortMes = cuota - interesMes;
+        if (amortMes > pendiente) amortMes = pendiente;
+        pendiente -= amortMes;
+        interesesAnio += interesMes;
+        amortizadoAnio += amortMes;
+        cuotaAnio += (interesMes + amortMes);
+      }
+      // amortización anticipada anual opcional (reduce capital, no reduce plazo -> reduce cuota futura recalculando)
+      if (extraAnual > 0 && pendiente > 0.5) {
+        const extra = Math.min(extraAnual, pendiente);
+        pendiente -= extra;
+        amortizadoAnio += extra;
+        cuotaAnio += extra;
+      }
+      totalIntereses += interesesAnio;
+      totalAmortizado += amortizadoAnio;
+      tablaAnual.push({
+        anio, cuotaAnio, interesesAnio, amortizadoAnio,
+        pendiente: Math.max(pendiente, 0)
+      });
+      if (mes >= n && pendiente <= 0.5) break;
+      if (anio > anios + 60) break; // salvaguarda
+    }
+    return {
+      cuotaMensual: cuota,
+      totalIntereses,
+      totalPagado: capital + totalIntereses,
+      tablaAnual,
+      anosReales: tablaAnual.length
+    };
+  }
+
+  // Extinción de condominio: reparto de cuotas, compensación y capital a financiar
+  function calcularExtincionCondominio({ valorVivienda, hipotecaPendiente, propietarios, quienSeQueda, aportacionPropia }) {
+    // propietarios: [{ id, nombre, porcentaje }]
+    const sumaPct = propietarios.reduce((a, p) => a + p.porcentaje, 0);
+    const salientes = propietarios.filter(p => p.id !== quienSeQueda);
+    const detalleSalientes = salientes.map(p => {
+      const valorCuota = valorVivienda * (p.porcentaje / 100);
+      const deudaCuota = hipotecaPendiente * (p.porcentaje / 100);
+      const compensacionNeta = valorCuota - deudaCuota;
+      return { ...p, valorCuota, deudaCuota, compensacionNeta };
+    });
+    const compensacionTotal = detalleSalientes.reduce((a, p) => a + p.compensacionNeta, 0);
+    const porcentajeAdquirido = salientes.reduce((a, p) => a + p.porcentaje, 0);
+    const baseImponibleAJD = valorVivienda * (porcentajeAdquirido / 100); // valor de la(s) cuota(s) adquirida(s)
+    const capitalNecesario = hipotecaPendiente + compensacionTotal - (aportacionPropia || 0);
+    return {
+      sumaPct, detalleSalientes, compensacionTotal, porcentajeAdquirido,
+      baseImponibleAJD, capitalNecesario
+    };
+  }
+
+  return { euro, euro2, pct, arancelNotarial, arancelRegistral, amortizacionFrancesa, calcularExtincionCondominio };
+})();
+
+</script>
+<script>
+/* Datos fiscales por Comunidad Autónoma / municipio.
+   Verificación sept. 2026: el acceso directo (WebFetch) a comunidad.madrid,
+   boe.es, noticias.juridicas.com y clientebancario.bde.es está bloqueado
+   por política de red de este entorno (403, confirmado también fuera de
+   la investigación inicial), así que no ha sido posible leer el BOE ni la
+   web oficial en directo. Cada cifra clave de esta tabla, sin embargo, se
+   ha cruzado con WebSearch contra 3-6 fuentes independientes entre sí
+   (comparadores fiscales especializados que sí citan y replican el texto
+   legal, más el criterio del Tribunal Supremo y de la DGT) y todas
+   coinciden, por lo que el nivel de confianza es alto aunque no sea
+   "fuente primaria leída directamente". Sigue siendo orientativo: usar
+   como guía, no como asesoramiento fiscal definitivo. */
+
+const FISCALIDAD = {
+  madrid: {
+    nombre: 'Comunidad de Madrid',
+    municipioDefecto: 'Alcalá de Henares',
+    ajdExtincionCondominio: 0.75, // % sobre base imponible = valor de la cuota adquirida (no el 100% del inmueble)
+    ajdGenerico: 0.75,
+    itpViviendaUsada: 6, // % general (tipo base, sin aplicar bonificaciones); ver nota de reducidos
+    ivaViviendaNueva: 10,
+    ajdViviendaNueva: 0.75,
+    notaReducidos: 'Sobre el 6% general existen reducciones: bonificación del 10% de la cuota para vivienda habitual ≤250.000€ (tipo efectivo 5,4%), y tipo reducido del 4% para familias numerosas en vivienda habitual (con requisitos). Este simulador usa el 6% general sin aplicar bonificaciones, como cifra conservadora.',
+    plusvaliaMunicipalNota: 'Si el reparto es proporcional a las cuotas de titularidad (exceso de adjudicación "inevitable" por indivisibilidad, art. 1.062 CC), la extinción de condominio NO devenga IIVTNU (plusvalía municipal): no hay transmisión a efectos de este impuesto (criterio reiterado de la DGT). Si hay exceso de adjudicación NO proporcional, sí se devenga sobre esa parte, y el sujeto pasivo es quien transmite/sale (recibe la compensación), no quien se queda la vivienda. Alcalá de Henares tiene Ordenanza Fiscal nº 7 propia del IIVTNU; aplica los coeficientes máximos estatales del RDL 8/2023 (no se ha localizado ningún coeficiente propio más gravoso), que es lo que usa este simulador.',
+    verificado: true,
+    fuentes: [
+      { texto: 'STS 1484/2018 (9-oct-2018) y STS 1058/2019 — solo AJD si el bien es indivisible', url: 'https://www.fiscal-impuestos.com/tributacion-ajd-actos-juridicos-documentados-extincion-condominio-sentencia-supremo-fija-jurisprudencia.html' },
+      { texto: 'AJD extinción de condominio Madrid 0,75% sobre la cuota adquirida (con ejemplo numérico)', url: 'https://hispanoteca.es/blog/extincion-condominio-ajd-itp/' },
+      { texto: 'AJD Madrid 0,75% general (contrastado con guiafiscal.es, rankia, ineaf)', url: 'https://guiafiscal.es/patrimonio/itp/madrid/' },
+      { texto: 'ITP Madrid 6% general + bonificación 10% vivienda habitual ≤250.000€ + 4% familia numerosa', url: 'https://www.rankia.com/blog/mejores-hipotecas/7380608-itp-madrid' },
+      { texto: 'IIVTNU no se devenga en extinción de condominio proporcional (criterio DGT)', url: 'https://www.fiscal-impuestos.com/DGT-IIVTNU-hecho-imponible-plusvalia-disolucion-condominio-compensacion-economica-comuneros' },
+      { texto: 'IIVTNU — condiciones de no sujeción explicadas', url: 'https://derecholocal.es/consulta/esta-sujeta-al-iivtnu-la-extincion-del-condominio' },
+      { texto: 'Alcalá de Henares aplica coeficientes IIVTNU del RDL 8/2023 (2026)', url: 'https://www.amparolillo.com/categ/-cuanto-pagare-de-plusvalia-en-alcala-de-henares-en-2026-guia-con-los-nuevos-coeficientes' },
+      { texto: 'Ordenanza Fiscal nº7 IIVTNU Alcalá de Henares (texto completo, no verificado dato a dato)', url: 'https://contribuyente.ayto-alcaladehenares.es/wp-content/uploads/2022/10/Ordenanza-Fiscal-del-IIVTNU.pdf' },
+      { texto: 'Ley 5/2019 — gastos hipoteca a cargo del banco (Banco de España)', url: 'https://clientebancario.bde.es/pcb/es/blog/que-gastos-te-toca-pagar-cuando-contratas-una-hipoteca-.html' }
+    ]
+  },
+  clm: {
+    nombre: 'Castilla-La Mancha (Guadalajara)',
+    municipioDefecto: 'Guadalajara',
+    ajdExtincionCondominio: 1.5, // % general; no hay tipo especial confirmado para extinción de condominio
+    ajdGenerico: 1.5,
+    itpViviendaUsada: 9, // % general (no habitual / segunda vivienda); ver nota de reducidos — vivienda habitual tributa menos
+    ivaViviendaNueva: 10,
+    ajdViviendaNueva: 1.5, // reducido a 0,5% (vivienda habitual ≤240.000€) o 0,25% (<36 años) desde Ley 1/2026
+    notaReducidos: 'El 9% es el tipo general (vivienda NO habitual / segunda residencia). Para VIVIENDA HABITUAL el tipo reducido general es del 6%. Y desde la Ley 1/2026 (vigente 31/03/2026) hay tipos aún más bajos para vivienda habitual: 3% para menores de 36 años que financien >50% con hipoteca (límite 240.000€), y 5% para familia numerosa, monoparental o discapacidad ≥65% (mismo límite). Este simulador usa el 9% general como cifra conservadora; si tu caso es vivienda habitual, el coste real de ITP puede ser bastante menor.',
+    plusvaliaMunicipalNota: 'Mismo criterio que en Madrid: la extinción de condominio proporcional a las cuotas no devenga IIVTNU. El Ayuntamiento de Guadalajara aplica el régimen general si hay exceso de adjudicación no proporcional.',
+    verificado: true,
+    fuentes: [
+      { texto: 'AJD Castilla-La Mancha 1,5% general', url: 'https://guiafiscal.es/patrimonio/itp/castilla-la-mancha/' },
+      { texto: 'Ley 1/2026 (26-mar-2026) — nuevos reducidos ITP/AJD jóvenes y familias, vigente desde 31/03/2026', url: 'https://portaltributario.jccm.es/avisos/entrada-en-vigor-de-la-ley-12026-de-26-de-marzo-de-medidas-administrativas-y-tributarias-de' },
+      { texto: 'ITP CLM: 9% general (no habitual) vs 6% vivienda habitual, 3% jóvenes, 5% familia numerosa', url: 'https://trioteca.com/blog/cuanto-pagas-de-itp-en-castilla-la-mancha/' },
+      { texto: 'ITP CLM 9%/6%, contraste adicional', url: 'https://infoitp.es/castilla-la-mancha/' }
+    ]
+  }
+};
+
+// Notas legales generales aplicables a ambas comunidades
+const FISCALIDAD_NOTAS_GENERALES = [
+  'Desde la Ley 11/2021 (antifraude), la base imponible de AJD/ITP no puede ser inferior al Valor de Referencia catastral del inmueble.',
+  'Ley 5/2019 (crédito inmobiliario), confirmado por el Banco de España: en la constitución de una hipoteca sobre vivienda, el AJD, la notaría, el registro y la gestoría de la parte hipotecaria los paga el BANCO. El cliente solo paga la tasación (y copias de escritura si las pide para sí).',
+  'La base imponible del AJD en una extinción de condominio es el valor de la cuota que se adquiere (la del copropietario saliente), no el valor total del inmueble (criterio consolidado desde STS 1484/2018).',
+  'Verificación: estas cifras están cruzadas contra varias fuentes independientes vía búsqueda web, pero no se ha podido leer en directo el texto del BOE ni de comunidad.madrid por una restricción de red de este entorno (no del dato en sí). Confirma el tipo exacto aplicable a tu caso concreto con una gestoría o notaría antes de firmar.',
+];
+
+const GASTOS_GENERICOS = {
+  gestoriaExtincion: 400, // € orientativo (rango visto: 100-600€)
+  gestoriaHipoteca: 0, // desde Ley 5/2019 la asume el banco
+  tasacionVivienda: 350, // € orientativo (rango visto: 200-500€), a cargo del cliente
+  seguroHogarAnual: 250,
+  seguroVidaAnual: 200
+};
+
+</script>
+<script>
+/* Base de datos de bancos e hipotecas.
+   Fuente: investigación con WebSearch (sept. 2026). IMPORTANTE: el acceso
+   directo (WebFetch) a las webs oficiales de los bancos estuvo bloqueado
+   por el proxy de red de este entorno, así que los datos proceden de
+   resultados de búsqueda que citan y resumen esas páginas oficiales y
+   comparadores (HelpMyCash, Kelisto, iAhorro, Rankia, goanlegal...), NO de
+   lectura directa de la ficha FIPRE/FEIN. Verifica siempre el TIN/TAE
+   exacto en la ficha oficial del banco antes de decidir — cambian a
+   menudo. Cada banco incluye `fechaConsulta` y `fuentes` para que puedas
+   contrastar. El campo `extincionCondominio` es el más incierto: casi
+   ningún banco publica una política oficial y cuantificada; se refleja
+   así explícitamente en vez de inventar cifras. */
+
+const BANCOS = [
+  {
+    id: 'caixabank', nombre: 'CaixaBank', verificado: 'con reservas', fechaConsulta: '2026-09',
+    productos: [
+      { id: 'cb-fija', nombre: 'Hipoteca CasaFácil Fijo', tipo: 'fija', tin: 2.85, tinSinBonificar: 3.80, plazoMaxAnios: 30, edadMaxima: 80, ltvMaxHabitual: 80, ltvMaxSegunda: 70, comisionApertura: 0, vinculaciones: ['nómina + 3 recibos', 'tarjeta (3 compras/trimestre)', 'seguro hogar', 'seguro vida/salud', 'alarma'] }
+    ],
+    extincionCondominio: {
+      financia100: null, entradaTipica: null, facilidad: 3,
+      notas: 'Aplica su LTV estándar (80%) sobre el valor de tasación del conjunto de la operación, no necesariamente sobre el 100% de la parte a compensar; en la práctica suele dejar un margen a cubrir con fondos propios. Trayectoria documentada operando este tipo de casos. Sin cifra oficial publicada — consulta directa recomendada.',
+      fuente: 'https://goanlegal.com/blog/condominio-hipoteca-la-caixa/ (bróker, sesgo comercial)'
+    },
+    fuentes: ['https://www.caixabank.es/particular/hipotecas/casafacil.html', 'https://www.hoyfinanzas.es/hipotecas/hipoteca-casafacil-caixabank-tipos-interes-comisiones']
+  },
+  {
+    id: 'santander', nombre: 'Banco Santander', verificado: 'con reservas', fechaConsulta: '2026-09',
+    productos: [
+      { id: 'sa-fija', nombre: 'Hipoteca Fija Santander', tipo: 'fija', tin: 2.96, tinSinBonificar: 3.96, plazoMaxAnios: 30, edadMaxima: 80, ltvMaxHabitual: 80, ltvMaxSegunda: 70, comisionApertura: 0, vinculaciones: ['nómina/pensión', 'tarjeta (6 usos/trimestre)', 'seguro hogar', 'seguro vida', 'plan de pensiones/inversión'] },
+      { id: 'sa-var', nombre: 'Hipoteca Variable Santander', tipo: 'variable', tin: 2.68, tinSinBonificar: 3.68, diferencial: 0.84, plazoMaxAnios: 30, edadMaxima: 80, ltvMaxHabitual: 80, ltvMaxSegunda: 70, comisionApertura: 0, vinculaciones: ['nómina/pensión', 'tarjeta', 'seguro hogar', 'seguro vida', 'plan de pensiones/inversión'] }
+    ],
+    extincionCondominio: {
+      financia100: false, entradaTipica: 20, facilidad: 2,
+      notas: 'Según fuentes de brokers, no suele cubrir el importe total necesario: aplica de facto ~80% LTV sobre el importe a compensar, exigiendo aportación propia del resto (~20%). No confirmado en fuente oficial de Santander.',
+      fuente: 'https://goanlegal.com/blog/hipoteca-extincion-condominio-santander/ (bróker, sesgo comercial)'
+    },
+    fuentes: ['https://www.bancosantander.es/particulares/hipotecas/hipoteca-fija', 'https://www.helpmycash.com/hipotecas/santander/hipoteca-fija/']
+  },
+  {
+    id: 'bbva', nombre: 'BBVA', verificado: 'con reservas', fechaConsulta: '2026-09',
+    productos: [
+      { id: 'bbva-fija', nombre: 'Hipoteca Fija BBVA', tipo: 'fija', tin: 2.85, tinSinBonificar: 3.85, plazoMaxAnios: 30, edadMaxima: 75, ltvMaxHabitual: 80, ltvMaxSegunda: 70, comisionApertura: 0, vinculaciones: ['nómina', 'seguro hogar', 'seguro vida'] },
+      { id: 'bbva-joven', nombre: 'Hipoteca Joven BBVA (<36 años)', tipo: 'variable', tin: 1.99, tinSinBonificar: 2.99, diferencial: 1.60, plazoMaxAnios: 30, edadMaxima: 70, ltvMaxHabitual: 95, ltvMaxSegunda: 70, comisionApertura: 0, vinculaciones: ['nómina', 'seguro hogar', 'seguro vida', 'menor de 36 años (hasta 100% con aval ICO Vivienda Joven)'] }
+    ],
+    extincionCondominio: {
+      financia100: false, entradaTipica: 20, facilidad: 2,
+      notas: 'Foros y brokers indican que, como la mayoría de bancos, suele financiar solo ~80% de la parte adquirida, exigiendo aportación del resto. Sin condiciones especiales confirmadas en fuente oficial.',
+      fuente: 'https://goanlegal.com/blog/extincion-de-condominio-hipoteca-bbva/ (bróker/foro, sin confirmación oficial)'
+    },
+    fuentes: ['https://www.bbva.es/personas/productos/hipotecas/hipoteca-fija.html', 'https://www.bbva.es/personas/productos/hipotecas/hipoteca-joven.html']
+  },
+  {
+    id: 'sabadell', nombre: 'Banco Sabadell', verificado: 'con reservas', fechaConsulta: '2026-09',
+    productos: [
+      { id: 'sab-fija', nombre: 'Hipoteca Fija Sabadell', tipo: 'fija', tin: 2.75, tinSinBonificar: 3.75, plazoMaxAnios: 30, edadMaxima: 75, ltvMaxHabitual: 80, ltvMaxSegunda: 70, comisionApertura: 0, vinculaciones: ['nómina', 'seguro hogar', 'seguro vida', 'protección de pagos'] },
+      { id: 'sab-var', nombre: 'Hipoteca Variable Sabadell', tipo: 'variable', tin: 1.50, tinSinBonificar: 2.50, diferencial: 0.50, plazoMaxAnios: 30, edadMaxima: 75, ltvMaxHabitual: 80, ltvMaxSegunda: 70, comisionApertura: 0, vinculaciones: ['nómina', 'seguro hogar', 'seguro vida', 'protección de pagos'] }
+    ],
+    extincionCondominio: {
+      financia100: null, entradaTipica: null, facilidad: 3,
+      notas: 'Sabadell publica un blog propio explicando el proceso de novación/subrogación en extinción de condominio, pero no un % de financiación concreto: remite a evaluación caso por caso (solvencia, cuota ≤30% de ingresos, historial crediticio).',
+      fuente: 'https://www.bancsabadell.com/bsnacional/ca/blog/que-es-le-extincio-del-condomini-i-com-es-realitza/'
+    },
+    fuentes: ['https://selectra.es/finanzas/bancos/sabadell/hipoteca-sabadell', 'https://www.kelisto.es/hipotecas-fijas/bancos/banc-sabadell/hipoteca-fija']
+  },
+  {
+    id: 'bankinter', nombre: 'Bankinter', verificado: 'con reservas', fechaConsulta: '2026-09',
+    productos: [
+      { id: 'bk-fija', nombre: 'Hipoteca Fija Bonificada Bankinter', tipo: 'fija', tin: 2.85, tinSinBonificar: 4.15, plazoMaxAnios: 30, edadMaxima: 75, ltvMaxHabitual: 80, ltvMaxSegunda: 60, comisionApertura: 0, vinculaciones: ['nómina', 'seguro de vida Bankinter', 'seguro multirriesgo hogar Bankinter', 'plan de pensiones ≥600€/año'] },
+      { id: 'bk-var', nombre: 'Hipoteca Variable Bankinter', tipo: 'variable', tin: 2.30, tinSinBonificar: 3.30, diferencial: 0.50, plazoMaxAnios: 30, edadMaxima: 75, ltvMaxHabitual: 80, ltvMaxSegunda: 60, comisionApertura: 0, vinculaciones: ['nómina', 'seguro de vida Bankinter', 'seguro multirriesgo hogar Bankinter'] }
+    ],
+    extincionCondominio: {
+      financia100: false, entradaTipica: 30, facilidad: 1,
+      notas: '⚠ Descrito repetidamente como de los MÁS restrictivos: "aplica criterios exigentes" y "no suele financiar el 100% del valor necesario". En un caso documentado, ante 30.000€ necesarios para compensar, propuso un préstamo personal a 10 años (peor condición) en vez de ampliar la hipoteca. Muchas solicitudes se rechazan según brokers.',
+      fuente: 'https://goanlegal.com/blog/hipoteca-extincion-de-condominio-bankinter/ (bróker/testimonios, no oficial)'
+    },
+    fuentes: ['https://www.kelisto.es/hipotecas/bancos/bankinter', 'https://www.finteca.es/bancos/hipoteca-bankinter/']
+  },
+  {
+    id: 'ing', nombre: 'ING España', verificado: 'con reservas', fechaConsulta: '2026-09',
+    productos: [
+      { id: 'ing-fija', nombre: 'Hipoteca Naranja Fija', tipo: 'fija', tin: 3.75, tinSinBonificar: 4.25, plazoMaxAnios: 25, edadMaxima: 75, ltvMaxHabitual: 80, ltvMaxSegunda: 70, comisionApertura: 0, vinculaciones: ['nómina (≥600€/mes o saldo ≥2.000€)', 'seguro de vida ING', 'seguro de hogar ING'] },
+      { id: 'ing-var', nombre: 'Hipoteca Naranja Variable', tipo: 'variable', tin: 2.65, tinSinBonificar: 3.65, diferencial: 0.65, plazoMaxAnios: 30, edadMaxima: 75, ltvMaxHabitual: 80, ltvMaxSegunda: 70, comisionApertura: 0, vinculaciones: ['nómina (≥600€/mes o saldo ≥2.000€)', 'seguro de vida ING', 'seguro de hogar ING'] }
+    ],
+    extincionCondominio: {
+      financia100: null, entradaTipica: null, facilidad: 2,
+      notas: 'Evidencia mixta: varias fuentes lo describen como reacio a liberar a un cotitular ("exige aportaciones adicionales, avalistas o productos extra"), pero un testimonio de foro completó la operación con buen tipo (1,99%) aunque con gastos de formalización altos (~7.500€). Sin política oficial publicada.',
+      fuente: 'https://goanlegal.com/blog/extincion-de-condominio-hipoteca-ing/ (bróker/foro, no oficial)'
+    },
+    fuentes: ['https://www.ing.es/hipotecas/hipoteca-fija', 'https://www.helpmycash.com/hipotecas/ing/hipoteca-naranja/']
+  },
+  {
+    id: 'openbank', nombre: 'Openbank', verificado: 'con reservas', fechaConsulta: '2026-09',
+    productos: [
+      { id: 'ob-fija', nombre: 'Hipoteca Fija Openbank', tipo: 'fija', tin: 2.46, tinSinBonificar: 2.96, plazoMaxAnios: 30, edadMaxima: 80, ltvMaxHabitual: 80, ltvMaxSegunda: 70, comisionApertura: 0, vinculaciones: ['nómina/pensión (≥900€ o ≥1.800€ dos titulares)', 'seguro hogar Openbank', 'seguro vida Openbank'] },
+      { id: 'ob-var', nombre: 'Hipoteca Variable Openbank', tipo: 'variable', tin: 2.00, tinSinBonificar: 2.50, diferencial: 0.65, plazoMaxAnios: 30, edadMaxima: 80, ltvMaxHabitual: 80, ltvMaxSegunda: 70, comisionApertura: 0, vinculaciones: ['nómina/pensión', 'seguro hogar Openbank', 'seguro vida Openbank'] }
+    ],
+    extincionCondominio: {
+      financia100: null, entradaTipica: null, facilidad: null,
+      notas: 'No se encontró información específica publicada sobre la política de Openbank en extinción de condominio, ni oficial ni de comparadores. Dato no confirmado — consulta directa recomendada.',
+      fuente: null
+    },
+    fuentes: ['https://www.openbank.es/hipoteca-fija', 'https://www.kelisto.es/hipotecas-fijas/bancos/openbank/hipoteca-fija-hasta-80-vt']
+  },
+  {
+    id: 'unicaja', nombre: 'Unicaja Banco', verificado: 'con reservas', fechaConsulta: '2026-09',
+    productos: [
+      { id: 'un-fija', nombre: 'Hipoteca Fija Unicaja', tipo: 'fija', tin: 2.95, tinSinBonificar: 3.85, plazoMaxAnios: 30, edadMaxima: 75, ltvMaxHabitual: 80, ltvMaxSegunda: 70, comisionApertura: 0.15, vinculaciones: ['nómina', 'seguro hogar', 'seguro vida'] },
+      { id: 'un-var', nombre: 'Hipoteca Variable Unicaja', tipo: 'variable', tin: 2.10, tinSinBonificar: 3.10, diferencial: 0.65, plazoMaxAnios: 30, edadMaxima: 75, ltvMaxHabitual: 80, ltvMaxSegunda: 70, comisionApertura: 0.15, vinculaciones: ['nómina', 'seguro hogar', 'seguro vida'] }
+    ],
+    extincionCondominio: {
+      financia100: null, entradaTipica: null, facilidad: 5,
+      notas: '✔ El ÚNICO banco con una página oficial de preguntas frecuentes dedicada específicamente a extinción de condominio. Su propio texto indica que "en algunos casos especializados puede llegar a cubrir el 100% de la operación, incluyendo los gastos", condicionado a evaluación de perfil financiero, estabilidad laboral e historial crediticio (no automático). Es el banco con la comunicación más transparente encontrada en esta investigación.',
+      fuente: 'https://www.unicajabanco.es/es/faqs/hipotecas/extincion-de-condominio (fuente oficial del banco)'
+    },
+    fuentes: ['https://www.unicajabanco.es/es/faqs/hipotecas/extincion-de-condominio', 'https://www.unicajabanco.es/es/particulares/hipotecas-y-prestamos/simulador-hipotecas']
+  },
+  {
+    id: 'abanca', nombre: 'Abanca', verificado: 'con reservas', fechaConsulta: '2026-09',
+    productos: [
+      { id: 'ab-fija', nombre: 'Hipoteca Mari Carmen Fija', tipo: 'fija', tin: 2.85, tinSinBonificar: 3.85, plazoMaxAnios: 30, edadMaxima: 75, ltvMaxHabitual: 80, ltvMaxSegunda: 70, comisionApertura: 0, vinculaciones: ['nómina', 'seguro hogar', 'seguro vida (vinculación media)'] },
+      { id: 'ab-var', nombre: 'Hipoteca Mari Carmen Variable', tipo: 'variable', tin: 2.35, tinSinBonificar: 3.35, diferencial: 0.60, plazoMaxAnios: 30, edadMaxima: 75, ltvMaxHabitual: 80, ltvMaxSegunda: 70, comisionApertura: 0, vinculaciones: ['nómina', 'seguro hogar', 'seguro vida (vinculación media)'] }
+    ],
+    extincionCondominio: {
+      financia100: null, entradaTipica: null, facilidad: null,
+      notas: 'No se encontró documento propio de Abanca sobre el tema; solo referencias genéricas de brokers, sin datos específicos de esta entidad. Dato no confirmado.',
+      fuente: null
+    },
+    fuentes: ['https://www.abanca.com/es/hipotecas/hipoteca-maricarmen/', 'https://www.abanca.com/es/hipotecas/hipoteca-maricarmen-fija/']
+  },
+  {
+    id: 'kutxabank', nombre: 'Kutxabank', verificado: 'con reservas', fechaConsulta: '2026-09',
+    productos: [
+      { id: 'ku-fija', nombre: 'Hipoteca Fija Kutxabank', tipo: 'fija', tin: 2.70, tinSinBonificar: 4.50, plazoMaxAnios: 30, edadMaxima: 75, ltvMaxHabitual: 80, ltvMaxSegunda: 70, comisionApertura: 0, vinculaciones: ['nómina ≥3.000€/mes', 'seguro hogar', 'plan de pensiones/EPSV ≥2.400€/año', 'cuenta en Kutxabank'] },
+      { id: 'ku-var', nombre: 'Hipoteca Variable Kutxabank', tipo: 'variable', tin: 2.07, tinSinBonificar: 2.71, diferencial: 0.49, plazoMaxAnios: 30, edadMaxima: 75, ltvMaxHabitual: 80, ltvMaxSegunda: 70, comisionApertura: 0, vinculaciones: ['nómina ≥3.000€/mes', 'seguro hogar', 'plan de pensiones/EPSV ≥2.400€/año', 'cuenta en Kutxabank'] }
+    ],
+    extincionCondominio: {
+      financia100: false, entradaTipica: null, facilidad: 1,
+      notas: '⚠ Caso real documentado: ante 30.000€ necesarios para compensar tras una separación (hipoteca de 210.000€ pendiente), Kutxabank NO amplió la hipoteca; propuso trasladar el plan de pensiones y ofrecer un préstamo personal a 10 años en vez de ampliar en buenas condiciones. Un único caso, no representa política oficial general, pero es la evidencia más concreta encontrada.',
+      fuente: 'https://www.rankia.com/foros/hipotecas/temas/5172054-subrogar-hipoteca-ampliacion-credito-extincion-condominio (testimonio de usuario)'
+    },
+    fuentes: ['https://clientes.kutxabank.es/es/hipotecas/variable.html', 'https://www.hoyfinanzas.es/hipotecas/hipoteca-variable-kutxabank-tipos-interes-bonificaciones']
+  },
+  {
+    id: 'mediolanum', nombre: 'Banco Mediolanum', verificado: 'con reservas', fechaConsulta: '2026-09',
+    productos: [
+      { id: 'med-var', nombre: 'Hipoteca Freedom Variable', tipo: 'variable', tin: 2.15, tinSinBonificar: 2.85, diferencial: 0.65, plazoMaxAnios: 30, edadMaxima: 80, ltvMaxHabitual: 80, ltvMaxSegunda: 70, comisionApertura: 0, vinculaciones: ['cuenta corriente en Mediolanum', 'ingresos recurrentes', 'seguro de vida'] },
+      { id: 'med-mixta', nombre: 'Hipoteca Freedom Mixta', tipo: 'fija', tin: 1.99, tinSinBonificar: 2.50, plazoMaxAnios: 30, edadMaxima: 80, ltvMaxHabitual: 80, ltvMaxSegunda: 70, comisionApertura: 1, vinculaciones: ['cuenta corriente en Mediolanum', 'ingresos recurrentes', 'seguro de vida'] }
+    ],
+    extincionCondominio: {
+      financia100: null, entradaTipica: null, facilidad: null,
+      notas: 'No se encontró ninguna información específica (ni oficial ni de brokers) sobre la política de Banco Mediolanum en extinción de condominio. Dato no confirmado.',
+      fuente: null
+    },
+    fuentes: ['https://www.bancomediolanum.es/es/w/financiacion/hipotecas/hipoteca-freedom-mixta']
+  },
+  {
+    id: 'deutsche', nombre: 'Deutsche Bank España', verificado: 'con reservas', fechaConsulta: '2026-09',
+    productos: [
+      { id: 'db-fija', nombre: 'Hipoteca Fija Deutsche Bank', tipo: 'fija', tin: 4.30, tinSinBonificar: 4.80, plazoMaxAnios: 30, edadMaxima: 75, ltvMaxHabitual: 80, ltvMaxSegunda: 70, comisionApertura: 0, vinculaciones: ['nómina/pensión', 'seguro hogar', 'seguro vida', 'tarjeta ≥3.000€/año'] },
+      { id: 'db-var', nombre: 'Hipoteca Variable HipoteCasa DB', tipo: 'variable', tin: 1.99, tinSinBonificar: 2.49, diferencial: 0.65, plazoMaxAnios: 30, edadMaxima: 75, ltvMaxHabitual: 80, ltvMaxSegunda: 70, comisionApertura: 1, vinculaciones: ['nómina/pensión', 'seguro hogar', 'seguro vida', 'seguro protección de pagos', 'plan de pensiones'] }
+    ],
+    extincionCondominio: {
+      financia100: null, entradaTipica: null, facilidad: null,
+      notas: 'No se encontró información específica sobre Deutsche Bank España en este tema. Dato no confirmado.',
+      fuente: null
+    },
+    fuentes: ['https://www.deutsche-bank.es/es/particulares/financiacion/hipotecas.html']
+  }
+];
+
+/* Nota EVO Banco: fusionado en Bankinter desde abril/julio de 2025, ya no
+   comercializa hipotecas nuevas como marca independiente. Se ha sustituido
+   en este comparador por Deutsche Bank España. Las hipotecas EVO ya
+   firmadas mantienen sus condiciones originales (fuera del alcance de
+   este simulador, pensado para nuevas operaciones). */
+
+const BANCOS_RESUMEN_METODOLOGICO = `Ningún banco de los investigados publica en su web oficial una cifra concreta de "financiamos el 100% del exceso de adjudicación sin entrada" (excepto Unicaja, que habla de "casos especializados" no automáticos). El patrón general del mercado es aplicar el LTV estándar del banco (típicamente 80%) sobre el conjunto de la operación, lo que suele dejar un ~20% a cubrir con fondos propios. Los mensajes de "100% sin entrada" que circulan en internet proceden mayoritariamente de brokers/gestorías que venden ese servicio, no de los bancos. Bankinter y Kutxabank muestran la evidencia más consistente de ser restrictivos en estos casos; Unicaja es el único con comunicación oficial transparente sobre el tema.`;
+
+</script>
+<script>
+/* Interactividad de la PWA: extinción de condominio + comparador de hipotecas */
+
+(() => {
+  const $ = (id) => document.getElementById(id);
+
+  // ---------------------------------------------------------------------
+  // ESTADO: copropietarios
+  // ---------------------------------------------------------------------
+  let propietarios = [
+    { id: 'p1', nombre: 'Propietario A', porcentaje: 50 },
+    { id: 'p2', nombre: 'Propietario B', porcentaje: 50 }
+  ];
+  let quienSeQueda = 'p1';
+  let nextPropId = 3;
+
+  function renderPropietarios() {
+    const list = $('ec-propietarios-list');
+    list.innerHTML = '';
+    propietarios.forEach((p) => {
+      const row = document.createElement('div');
+      row.className = 'propietario-row';
+      row.innerHTML = `
+        <input type="text" data-field="nombre" data-id="${p.id}" value="${p.nombre}">
+        <input type="number" data-field="porcentaje" data-id="${p.id}" value="${p.porcentaje}" min="0" max="100" step="0.5">
+        <button type="button" class="btn-remove" data-remove="${p.id}" title="Eliminar" ${propietarios.length <= 2 ? 'disabled' : ''}>✕</button>
+      `;
+      list.appendChild(row);
+    });
+
+    list.querySelectorAll('input[data-field="nombre"]').forEach(inp => {
+      inp.addEventListener('input', (e) => {
+        const p = propietarios.find(x => x.id === e.target.dataset.id);
+        p.nombre = e.target.value;
+        renderQuienSeQuedaOptions();
+        recalcExtincion();
+      });
+    });
+    list.querySelectorAll('input[data-field="porcentaje"]').forEach(inp => {
+      inp.addEventListener('input', (e) => {
+        const p = propietarios.find(x => x.id === e.target.dataset.id);
+        p.porcentaje = parseFloat(e.target.value) || 0;
+        recalcExtincion();
+      });
+    });
+    list.querySelectorAll('button[data-remove]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.target.dataset.remove;
+        if (propietarios.length <= 2) return;
+        propietarios = propietarios.filter(p => p.id !== id);
+        if (quienSeQueda === id) quienSeQueda = propietarios[0].id;
+        renderPropietarios();
+        renderQuienSeQuedaOptions();
+        recalcExtincion();
+      });
+    });
+  }
+
+  function renderQuienSeQuedaOptions() {
+    const sel = $('ec-quien-se-queda');
+    const prev = quienSeQueda;
+    sel.innerHTML = propietarios.map(p => `<option value="${p.id}">${p.nombre || p.id}</option>`).join('');
+    sel.value = propietarios.some(p => p.id === prev) ? prev : propietarios[0].id;
+    quienSeQueda = sel.value;
+  }
+
+  $('ec-add-propietario').addEventListener('click', () => {
+    const id = 'p' + (nextPropId++);
+    propietarios.push({ id, nombre: 'Propietario ' + id.slice(1), porcentaje: 0 });
+    renderPropietarios();
+    renderQuienSeQuedaOptions();
+    recalcExtincion();
+  });
+
+  $('ec-quien-se-queda').addEventListener('change', (e) => {
+    quienSeQueda = e.target.value;
+    recalcExtincion();
+  });
+
+  // ---------------------------------------------------------------------
+  // SECCIÓN 1: EXTINCIÓN DE CONDOMINIO
+  // ---------------------------------------------------------------------
+  let ultimoResultadoExtincion = null;
+  let hipotecaAutoSync = true; // mientras esté activo, la Sección 2 se rellena sola desde la Sección 1
+
+  function gastosExtincion({ baseImponibleAJD, ubicacion, excesoNoProporcional, requiereTasacion }) {
+    const fisc = FISCALIDAD[ubicacion];
+    const items = [];
+    const ajdImporte = baseImponibleAJD * (fisc.ajdExtincionCondominio / 100);
+    items.push({ concepto: `AJD extinción de condominio (${fisc.ajdExtincionCondominio}% sobre ${Calc.euro(baseImponibleAJD)})`, importe: ajdImporte });
+    items.push({ concepto: 'Notaría (arancel orientativo)', importe: Calc.arancelNotarial(baseImponibleAJD) });
+    items.push({ concepto: 'Registro de la Propiedad (arancel orientativo)', importe: Calc.arancelRegistral(baseImponibleAJD) });
+    items.push({ concepto: 'Gestoría', importe: GASTOS_GENERICOS.gestoriaExtincion });
+    if (requiereTasacion) {
+      items.push({ concepto: 'Tasación de la vivienda (exigida por el banco)', importe: GASTOS_GENERICOS.tasacionVivienda });
+    }
+    if (excesoNoProporcional) {
+      items.push({ concepto: 'Plusvalía municipal (IIVTNU) — estimación por exceso de adjudicación no proporcional', importe: Math.round(baseImponibleAJD * 0.02) });
+    } else {
+      items.push({ concepto: 'Plusvalía municipal (IIVTNU) — no se devenga (reparto proporcional a las cuotas)', importe: 0 });
+    }
+    return items;
+  }
+
+  function recalcExtincion() {
+    const valorVivienda = parseFloat($('ec-valor').value) || 0;
+    const hipotecaPendiente = parseFloat($('ec-hipoteca-pendiente').value) || 0;
+    const aportacionPropia = parseFloat($('ec-aportacion').value) || 0;
+    const ubicacion = $('ec-ubicacion').value;
+    const excesoNoProporcional = $('ec-exceso-no-proporcional').checked;
+    const requiereTasacion = $('ec-requiere-tasacion').checked;
+
+    const sumaPct = propietarios.reduce((a, p) => a + p.porcentaje, 0);
+    const detalleDiv = $('ec-detalle-salientes');
+
+    if (Math.abs(sumaPct - 100) > 0.01) {
+      detalleDiv.innerHTML = `<p style="color:#b23b3b;font-weight:600;">⚠ Los porcentajes de los copropietarios deben sumar 100% (actualmente suman ${sumaPct}%).</p>`;
+      $('ec-compensacion-total').textContent = '—';
+      $('ec-hipoteca-asumida').textContent = '—';
+      $('ec-capital-necesario').textContent = '—';
+      $('ec-tabla-gastos').innerHTML = '';
+      $('ec-total-gastos').textContent = '—';
+      ultimoResultadoExtincion = null;
+      updateResumenGlobal();
+      return;
+    }
+
+    const r = Calc.calcularExtincionCondominio({
+      valorVivienda, hipotecaPendiente, propietarios, quienSeQueda, aportacionPropia
+    });
+
+    detalleDiv.innerHTML = r.detalleSalientes.map(p => `
+      <div class="detalle-item">
+        <strong>${p.nombre} (${p.porcentaje}%)</strong>
+        Valor de su cuota: ${Calc.euro(p.valorCuota)} · Deuda hipotecaria de su cuota: ${Calc.euro(p.deudaCuota)}
+        <br>Compensación neta a recibir: <strong>${Calc.euro(p.compensacionNeta)}</strong>
+      </div>
+    `).join('') || '<p>El propietario que se queda la vivienda no debe compensar a nadie más.</p>';
+
+    $('ec-compensacion-total').textContent = Calc.euro(r.compensacionTotal);
+    $('ec-hipoteca-asumida').textContent = Calc.euro(hipotecaPendiente);
+    $('ec-capital-necesario').textContent = Calc.euro(Math.max(r.capitalNecesario, 0));
+
+    const items = gastosExtincion({ baseImponibleAJD: r.baseImponibleAJD, ubicacion, excesoNoProporcional, requiereTasacion });
+    $('ec-tabla-gastos').innerHTML = items.map(it => `<tr><td>${it.concepto}</td><td>${Calc.euro2(it.importe)}</td></tr>`).join('');
+    const totalGastos = items.reduce((a, it) => a + it.importe, 0);
+    $('ec-total-gastos').textContent = Calc.euro2(totalGastos);
+
+    $('ec-nota-fiscal').textContent = fisc => '';
+    $('ec-nota-fiscal').innerHTML = `Ubicación: ${FISCALIDAD[ubicacion].nombre}. Base imponible AJD = valor de la(s) cuota(s) adquirida(s), no el 100% del inmueble (criterio STS 1484/2018).`;
+
+    ultimoResultadoExtincion = {
+      valorVivienda, hipotecaPendiente, compensacionTotal: r.compensacionTotal,
+      capitalNecesario: Math.max(r.capitalNecesario, 0), totalGastos, ubicacion
+    };
+
+    if (hipotecaAutoSync && $('hi-tipo-operacion').value === 'extincion') {
+      syncHipotecaDesdeExtincion();
+    } else {
+      updateResumenGlobal();
+    }
+  }
+
+  ['ec-valor', 'ec-hipoteca-pendiente', 'ec-aportacion', 'ec-ubicacion', 'ec-exceso-no-proporcional', 'ec-requiere-tasacion']
+    .forEach(id => $(id).addEventListener('input', recalcExtincion));
+
+  // Traslada el capital calculado en la Sección 1 a los campos de la Sección 2,
+  // sin que el usuario tenga que hacer nada más. Se llama sola cada vez que
+  // cambia algo en la extinción de condominio, mientras `hipotecaAutoSync` esté activo.
+  function syncHipotecaDesdeExtincion() {
+    if (!ultimoResultadoExtincion) { updateResumenGlobal(); return; }
+    $('hi-precio').value = ultimoResultadoExtincion.valorVivienda;
+    const pct = ultimoResultadoExtincion.valorVivienda > 0
+      ? Math.min(100, Math.round((ultimoResultadoExtincion.capitalNecesario / ultimoResultadoExtincion.valorVivienda) * 100))
+      : 80;
+    $('hi-porcentaje').value = pct;
+    $('hi-porcentaje-range').value = pct;
+    $('hi-ubicacion').value = ultimoResultadoExtincion.ubicacion;
+    recalcHipoteca(); // ya llama a updateResumenGlobal() al final
+  }
+
+  function renderSyncBadge() {
+    const badge = $('hi-sync-status');
+    if (!badge) return;
+    if (hipotecaAutoSync) {
+      badge.innerHTML = '🔗 Vinculado a la Sección 1: se rellena solo. Edita el precio, % o ubicación de abajo para desvincular.';
+      badge.classList.remove('desvinculado');
+    } else {
+      badge.innerHTML = '🔓 Desvinculado de la Sección 1 — <button type="button" id="hi-resync-btn" class="btn-link">🔗 volver a sincronizar</button>';
+      badge.classList.add('desvinculado');
+      $('hi-resync-btn').addEventListener('click', () => {
+        hipotecaAutoSync = true;
+        renderSyncBadge();
+        syncHipotecaDesdeExtincion();
+      });
+    }
+  }
+
+  function romperAutoSync() {
+    if (!hipotecaAutoSync) return;
+    hipotecaAutoSync = false;
+    renderSyncBadge();
+  }
+  ['hi-precio', 'hi-porcentaje', 'hi-porcentaje-range', 'hi-ubicacion'].forEach(id => {
+    $(id).addEventListener('input', romperAutoSync);
+  });
+
+  // ---------------------------------------------------------------------
+  // SECCIÓN 2: COMPARADOR DE HIPOTECAS
+  // ---------------------------------------------------------------------
+  function populateBancoSelect() {
+    const sel = $('hi-banco');
+    sel.innerHTML = BANCOS.map(b => `<option value="${b.id}">${b.nombre}</option>`).join('');
+  }
+
+  function populateProductoSelect() {
+    const bancoId = $('hi-banco').value;
+    const banco = BANCOS.find(b => b.id === bancoId);
+    const sel = $('hi-producto');
+    sel.innerHTML = banco.productos.map(p => `<option value="${p.id}">${p.nombre} (${p.tipo === 'fija' ? 'Fija' : 'Variable'})</option>`).join('');
+  }
+
+  function productoActual() {
+    const banco = BANCOS.find(b => b.id === $('hi-banco').value);
+    const producto = banco.productos.find(p => p.id === $('hi-producto').value);
+    return { banco, producto };
+  }
+
+  let ultimoResultadoHipoteca = null;
+
+  function gastosHipoteca({ producto, capital, precio, tipoOperacion, ubicacion, viviendaNueva, baseImponibleImpuesto }) {
+    const fisc = FISCALIDAD[ubicacion];
+    const items = [];
+    items.push({ concepto: 'Tasación de la vivienda (a cargo del cliente)', importe: GASTOS_GENERICOS.tasacionVivienda });
+    const comisionApertura = capital * (producto.comisionApertura / 100);
+    items.push({ concepto: `Comisión de apertura (${producto.comisionApertura}%)`, importe: comisionApertura });
+    items.push({ concepto: 'AJD constitución hipoteca, notaría, registro y gestoría (a cargo del banco, Ley 5/2019)', importe: 0 });
+
+    if (tipoOperacion === 'extincion') {
+      items.push({ concepto: 'AJD, notaría, registro y gestoría de la extinción de condominio (ya incluidos en la Sección 1, no se duplican aquí)', importe: 0 });
+    } else if (viviendaNueva) {
+      items.push({ concepto: `IVA vivienda nueva (${fisc.ivaViviendaNueva}%)`, importe: precio * (fisc.ivaViviendaNueva / 100) });
+      items.push({ concepto: `AJD compraventa vivienda nueva (${fisc.ajdViviendaNueva}%)`, importe: precio * (fisc.ajdViviendaNueva / 100) });
+    } else {
+      items.push({ concepto: `ITP compraventa vivienda usada (${fisc.itpViviendaUsada}% general — puede haber tipos reducidos, ver notas de datos)`, importe: precio * (fisc.itpViviendaUsada / 100) });
+    }
+    return items;
+  }
+
+  function recalcHipoteca() {
+    const { banco, producto } = productoActual();
+    const tipoOperacion = $('hi-tipo-operacion').value;
+    const precio = parseFloat($('hi-precio').value) || 0;
+    const edad = parseFloat($('hi-edad').value) || 18;
+    const ubicacion = $('hi-ubicacion').value;
+    const viviendaNueva = $('hi-vivienda-nueva').checked;
+    const extraAnual = parseFloat($('hi-extra-anual').value) || 0;
+
+    const ltvMax = producto.ltvMaxHabitual;
+    $('hi-porcentaje').max = ltvMax;
+    $('hi-porcentaje-range').max = ltvMax;
+    let porcentaje = parseFloat($('hi-porcentaje').value) || 0;
+    if (porcentaje > ltvMax) { porcentaje = ltvMax; $('hi-porcentaje').value = ltvMax; }
+    $('hi-porcentaje-range').value = porcentaje;
+    $('hi-ltv-hint').textContent = `Máximo financiable por ${banco.nombre} en este producto: ${ltvMax}% del valor de tasación.`;
+
+    const plazoMaxPorEdad = Math.max(1, producto.edadMaxima - edad);
+    const plazoMax = Math.min(producto.plazoMaxAnios, plazoMaxPorEdad);
+    $('hi-plazo').max = plazoMax;
+    $('hi-plazo-range').max = plazoMax;
+    let plazo = parseFloat($('hi-plazo').value) || 1;
+    if (plazo > plazoMax) { plazo = plazoMax; $('hi-plazo').value = plazoMax; }
+    $('hi-plazo-range').value = plazo;
+    $('hi-plazo-hint').textContent = `Plazo máximo: ${producto.plazoMaxAnios} años, limitado a ${plazoMax} años por la edad máxima del banco (${producto.edadMaxima} años).`;
+
+    $('hi-producto-info').textContent = (producto.tipo === 'variable'
+      ? `TIN ${producto.tin}% (Euríbor + ${producto.diferencial}%) con todas las bonificaciones · sin bonificar: ${producto.tinSinBonificar}% · vinculaciones: ${producto.vinculaciones.join(', ')}`
+      : `TIN fijo ${producto.tin}% con todas las bonificaciones · sin bonificar: ${producto.tinSinBonificar}% · vinculaciones: ${producto.vinculaciones.join(', ')}`)
+      + ` · Datos consultados ${banco.fechaConsulta} (${banco.verificado}), verificar en la ficha FIPRE/FEIN oficial antes de decidir.`;
+
+    const capital = precio * (porcentaje / 100);
+    const entrada = precio - capital;
+    const baseImponibleImpuesto = tipoOperacion === 'extincion' ? capital : precio;
+
+    const amort = Calc.amortizacionFrancesa(capital, producto.tin, plazo, extraAnual);
+
+    $('hi-capital').textContent = Calc.euro(capital);
+    $('hi-entrada').textContent = Calc.euro(entrada);
+    $('hi-tin').textContent = Calc.pct(producto.tin);
+    $('hi-cuota').textContent = Calc.euro2(amort.cuotaMensual) + ' /mes';
+    $('hi-intereses').textContent = Calc.euro(amort.totalIntereses);
+    $('hi-total-pagado').textContent = Calc.euro(amort.totalPagado);
+
+    $('hi-tabla-amortizacion').innerHTML = amort.tablaAnual.map(row => `
+      <tr>
+        <td>${row.anio}</td>
+        <td>${Calc.euro2(row.cuotaAnio)}</td>
+        <td>${Calc.euro2(row.interesesAnio)}</td>
+        <td>${Calc.euro2(row.amortizadoAnio)}</td>
+        <td>${Calc.euro2(row.pendiente)}</td>
+      </tr>
+    `).join('');
+
+    const items = gastosHipoteca({ producto, capital, precio, tipoOperacion, ubicacion, viviendaNueva, baseImponibleImpuesto });
+    $('hi-tabla-gastos').innerHTML = items.map(it => `<tr><td>${it.concepto}</td><td>${Calc.euro2(it.importe)}</td></tr>`).join('');
+    const totalGastosHipoteca = items.reduce((a, it) => a + it.importe, 0);
+    $('hi-total-gastos').textContent = Calc.euro2(totalGastosHipoteca);
+
+    ultimoResultadoHipoteca = {
+      capital, entrada, cuotaMensual: amort.cuotaMensual, totalIntereses: amort.totalIntereses,
+      totalPagado: amort.totalPagado, totalGastos: totalGastosHipoteca, plazo
+    };
+    updateResumenGlobal();
+  }
+
+  $('hi-banco').addEventListener('change', () => { populateProductoSelect(); recalcHipoteca(); });
+  ['hi-producto', 'hi-edad', 'hi-vivienda-nueva', 'hi-extra-anual']
+    .forEach(id => $(id).addEventListener('input', recalcHipoteca));
+  $('hi-tipo-operacion').addEventListener('input', () => {
+    if (hipotecaAutoSync && $('hi-tipo-operacion').value === 'extincion') {
+      syncHipotecaDesdeExtincion();
+    } else {
+      recalcHipoteca();
+    }
+  });
+
+  // sliders <-> number inputs sincronizados
+  function syncPair(rangeId, numberId) {
+    $(rangeId).addEventListener('input', () => { $(numberId).value = $(rangeId).value; recalcHipoteca(); });
+    $(numberId).addEventListener('input', () => { $(rangeId).value = $(numberId).value; recalcHipoteca(); });
+  }
+  syncPair('hi-porcentaje-range', 'hi-porcentaje');
+  syncPair('hi-plazo-range', 'hi-plazo');
+
+  // ---------------------------------------------------------------------
+  // ANÁLISIS DE BANCOS EN EXTINCIÓN DE CONDOMINIO
+  // ---------------------------------------------------------------------
+  function renderAnalisisBancos() {
+    const tbody = $('tabla-analisis-bancos');
+    const ordenados = [...BANCOS].sort((a, b) => (b.extincionCondominio.facilidad || 0) - (a.extincionCondominio.facilidad || 0));
+    tbody.innerHTML = ordenados.map(b => {
+      const ec = b.extincionCondominio;
+      const facilidadTxt = ec.facilidad == null ? 'Sin evidencia' : '★'.repeat(ec.facilidad) + '☆'.repeat(5 - ec.facilidad);
+      const facilidadClass = ec.facilidad >= 4 ? 'facilidad-alta' : ec.facilidad >= 2 ? 'facilidad-media' : ec.facilidad != null ? 'facilidad-baja' : '';
+      const financia100 = ec.financia100 === true ? 'Sí' : ec.financia100 === false ? 'No (evidencia)' : 'Sin confirmar';
+      const entrada = ec.entradaTipica == null ? '—' : '~' + ec.entradaTipica + '%';
+      const notaConFuente = (ec.notas || '') + (ec.fuente ? ` <em>[Fuente: ${ec.fuente}]</em>` : '');
+      return `<tr>
+        <td>${b.nombre}</td>
+        <td>${financia100}</td>
+        <td>${entrada}</td>
+        <td class="${facilidadClass}">${facilidadTxt}</td>
+        <td>${notaConFuente}</td>
+      </tr>`;
+    }).join('');
+    const desc = document.querySelector('.analisis-bancos .panel-desc');
+    if (desc) desc.textContent = BANCOS_RESUMEN_METODOLOGICO;
+  }
+
+  // ---------------------------------------------------------------------
+  // RESUMEN GLOBAL
+  // ---------------------------------------------------------------------
+  function updateResumenGlobal() {
+    const ec = ultimoResultadoExtincion;
+    const hi = ultimoResultadoHipoteca;
+
+    $('rs-gastos-extincion').textContent = ec ? Calc.euro(ec.totalGastos) : '—';
+    $('rs-gastos-hipoteca').textContent = hi ? Calc.euro(hi.totalGastos) : '—';
+    const totalGastos = (ec ? ec.totalGastos : 0) + (hi ? hi.totalGastos : 0);
+    $('rs-total-gastos').textContent = Calc.euro(totalGastos);
+
+    const entradaHipoteca = hi ? hi.entrada : 0;
+    const gastosNoFinanciables = totalGastos; // se asumen en efectivo salvo que el usuario los cubra aparte
+    $('rs-entrada').textContent = Calc.euro(entradaHipoteca + gastosNoFinanciables);
+
+    $('rs-capital-final').textContent = hi ? Calc.euro(hi.capital) : '—';
+    $('rs-cuota').textContent = hi ? Calc.euro2(hi.cuotaMensual) + ' /mes' : '—';
+    $('rs-plazo').textContent = hi ? hi.plazo + ' años' : '—';
+    $('rs-intereses').textContent = hi ? Calc.euro(hi.totalIntereses) : '—';
+  }
+
+  // ---------------------------------------------------------------------
+  // MODAL DE FUENTES
+  // ---------------------------------------------------------------------
+  function renderFuentes() {
+    const cont = $('fuentes-contenido');
+    let html = '<p><strong>⚠️ Limitación de esta investigación:</strong> el acceso directo (WebFetch) a las webs oficiales de bancos, comunidad.madrid y boe.es está bloqueado por política de red de este entorno (confirmado, no es un fallo puntual). Cada cifra fiscal se ha cruzado con WebSearch contra 3-6 fuentes independientes entre sí (comparadores fiscales especializados, el criterio del Tribunal Supremo y de la DGT), por lo que la confianza es alta aunque no sea lectura directa del BOE. Verifica siempre las cifras exactas de tu caso con una gestoría o notaría antes de decidir.</p>';
+    html += '<h4>Fiscalidad — Notas generales</h4><ul>' + FISCALIDAD_NOTAS_GENERALES.map(n => `<li>${n}</li>`).join('') + '</ul>';
+    Object.values(FISCALIDAD).forEach(f => {
+      html += `<h4>${f.nombre}${f.verificado === true ? ' ✔ cruzado con varias fuentes' : f.verificado === 'parcial' ? ' (parcialmente verificado)' : ''}</h4>`;
+      if (f.notaReducidos) html += `<p><em>${f.notaReducidos}</em></p>`;
+      html += '<ul>';
+      html += f.fuentes.map(s => `<li><a href="${s.url}" target="_blank" rel="noopener">${s.texto}</a></li>`).join('');
+      html += '</ul>';
+    });
+    html += '<h4>Bancos — metodología</h4><p>' + BANCOS_RESUMEN_METODOLOGICO + '</p>';
+    html += '<h4>Bancos — fuentes por entidad</h4><ul>';
+    BANCOS.forEach(b => {
+      html += `<li><strong>${b.nombre}</strong> (consultado ${b.fechaConsulta}): ` +
+        b.fuentes.map(u => `<a href="${u}" target="_blank" rel="noopener">${u}</a>`).join(' · ') +
+        (b.extincionCondominio.fuente ? `<br>Extinción de condominio: ${b.extincionCondominio.fuente}` : '') +
+        '</li>';
+    });
+    html += '</ul>';
+    cont.innerHTML = html;
+  }
+  $('link-fuentes').addEventListener('click', (e) => { e.preventDefault(); renderFuentes(); $('fuentes-modal').classList.add('open'); });
+  $('cerrar-fuentes').addEventListener('click', () => $('fuentes-modal').classList.remove('open'));
+  $('fuentes-modal').addEventListener('click', (e) => { if (e.target.id === 'fuentes-modal') $('fuentes-modal').classList.remove('open'); });
+
+  // ---------------------------------------------------------------------
+  // INIT
+  // ---------------------------------------------------------------------
+  renderPropietarios();
+  renderQuienSeQuedaOptions();
+  populateBancoSelect();
+  populateProductoSelect();
+  renderAnalisisBancos();
+  renderSyncBadge();
+  recalcExtincion();
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
+})();
+
+</script>
+</body>
+</html>
