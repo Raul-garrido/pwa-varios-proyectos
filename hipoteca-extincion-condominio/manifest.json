@@ -1,0 +1,18 @@
+{
+  "name": "Extinción de Condominio + Hipoteca",
+  "short_name": "Hipoteca EC",
+  "description": "Simula una extinción de condominio real y compara hipotecas de los principales bancos españoles, con todos los gastos incluidos.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f5c4c",
+  "theme_color": "#0f5c4c",
+  "lang": "es",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

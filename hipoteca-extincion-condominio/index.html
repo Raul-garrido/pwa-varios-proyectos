@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simulador de Extinción de Condominio e Hipoteca</title>
+<meta name="description" content="Simula una extinción de condominio real y compara hipotecas de los principales bancos españoles, con todos los gastos incluidos.">
+<meta name="theme-color" content="#0f5c4c">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="app-header">
+  <h1>🏠 Extinción de condominio + Comparador de hipotecas</h1>
+  <p class="subtitle">Simula el reparto, los impuestos y la nueva hipoteca en una sola pantalla</p>
+</header>
+
+<main>
+
+  <!-- ===================== SECCIÓN 1: EXTINCIÓN DE CONDOMINIO ===================== -->
+  <section id="seccion-extincion" class="panel">
+    <h2><span class="badge">1</span> Simulador de extinción de condominio</h2>
+    <p class="panel-desc">Calcula cuánto debe compensar quien se queda la vivienda a los demás copropietarios, y todos los gastos e impuestos de la operación.</p>
+
+    <div class="grid-2col">
+      <div class="form-col">
+
+        <label>Valor de tasación / mercado de la vivienda
+          <input type="number" id="ec-valor" value="300000" min="0" step="1000">
+        </label>
+
+        <label>Hipoteca pendiente (capital vivo actual)
+          <input type="number" id="ec-hipoteca-pendiente" value="150000" min="0" step="1000">
+        </label>
+
+        <fieldset class="propietarios-fieldset">
+          <legend>Copropietarios</legend>
+          <div id="ec-propietarios-list"></div>
+          <button type="button" id="ec-add-propietario" class="btn-link">+ Añadir copropietario</button>
+        </fieldset>
+
+        <label>¿Quién se queda la vivienda?
+          <select id="ec-quien-se-queda"></select>
+        </label>
+
+        <label>Aportación propia en efectivo (opcional, reduce lo que hay que financiar)
+          <input type="number" id="ec-aportacion" value="0" min="0" step="500">
+        </label>
+
+        <label>Ubicación de la vivienda (ajusta impuestos)
+          <select id="ec-ubicacion">
+            <option value="madrid" selected>Comunidad de Madrid — Alcalá de Henares</option>
+            <option value="clm">Castilla-La Mancha — Guadalajara</option>
+          </select>
+        </label>
+
+        <label class="checkbox-label">
+          <input type="checkbox" id="ec-exceso-no-proporcional">
+          <span>El reparto <strong>no</strong> es proporcional a las cuotas de titularidad (exceso de adjudicación no ajustado: puede devengar plusvalía municipal e ITP en la parte no proporcional)</span>
+        </label>
+
+        <label class="checkbox-label">
+          <input type="checkbox" id="ec-requiere-tasacion" checked>
+          <span>El banco exige nueva tasación de la vivienda</span>
+        </label>
+      </div>
+
+      <div class="result-col">
+        <h3>Reparto entre copropietarios</h3>
+        <div id="ec-detalle-salientes" class="detalle-list"></div>
+
+        <div class="stat-row"><span>Compensación total a pagar a los salientes</span><strong id="ec-compensacion-total">—</strong></div>
+        <div class="stat-row"><span>Capital pendiente de hipoteca asumido</span><strong id="ec-hipoteca-asumida">—</strong></div>
+        <div class="stat-row highlight"><span>Capital necesario a financiar</span><strong id="ec-capital-necesario">—</strong></div>
+
+        <button type="button" id="ec-usar-en-hipoteca" class="btn-secondary">⬇ Usar este importe como capital en el simulador de hipoteca</button>
+
+        <h3>Gastos de la extinción de condominio</h3>
+        <table class="tabla-gastos">
+          <tbody id="ec-tabla-gastos"></tbody>
+          <tfoot>
+            <tr class="total-row"><td>Total gastos extinción</td><td id="ec-total-gastos">—</td></tr>
+          </tfoot>
+        </table>
+        <p class="nota-fiscal" id="ec-nota-fiscal"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== SECCIÓN 2: COMPARADOR DE HIPOTECAS ===================== -->
+  <section id="seccion-hipoteca" class="panel">
+    <h2><span class="badge">2</span> Comparador y simulador de hipotecas</h2>
+    <p class="panel-desc">Elige banco y producto, ajusta las variables dentro de los límites del banco, y simula la cuota y los gastos.</p>
+
+    <div class="grid-2col">
+      <div class="form-col">
+
+        <label>Tipo de operación
+          <select id="hi-tipo-operacion">
+            <option value="extincion" selected>Ampliación/subrogación por extinción de condominio</option>
+            <option value="compra">Compra de vivienda (hipoteca nueva)</option>
+          </select>
+        </label>
+
+        <label>Banco
+          <select id="hi-banco"></select>
+        </label>
+
+        <label>Producto hipotecario
+          <select id="hi-producto"></select>
+        </label>
+        <p class="hint" id="hi-producto-info"></p>
+
+        <label>Precio / valor de tasación de la vivienda
+          <input type="number" id="hi-precio" value="300000" min="0" step="1000">
+        </label>
+
+        <label>% solicitado sobre el valor (financiación)
+          <input type="range" id="hi-porcentaje-range" min="1" max="100" value="80" step="1">
+          <input type="number" id="hi-porcentaje" value="80" min="1" max="100" step="1">
+        </label>
+        <p class="hint" id="hi-ltv-hint"></p>
+
+        <label>Edad actual del solicitante
+          <input type="number" id="hi-edad" value="35" min="18" max="85" step="1">
+        </label>
+
+        <label>Plazo (años)
+          <input type="range" id="hi-plazo-range" min="1" max="40" value="30" step="1">
+          <input type="number" id="hi-plazo" value="30" min="1" max="40" step="1">
+        </label>
+        <p class="hint" id="hi-plazo-hint"></p>
+
+        <label>Amortización anticipada anual (opcional)
+          <input type="number" id="hi-extra-anual" value="0" min="0" step="500">
+        </label>
+
+        <label>Ubicación de la vivienda (ajusta impuestos)
+          <select id="hi-ubicacion">
+            <option value="madrid" selected>Comunidad de Madrid — Alcalá de Henares</option>
+            <option value="clm">Castilla-La Mancha — Guadalajara</option>
+          </select>
+        </label>
+
+        <label class="checkbox-label">
+          <input type="checkbox" id="hi-vivienda-nueva">
+          <span>Vivienda de obra nueva (aplica IVA + AJD en vez de ITP, solo si es "Compra")</span>
+        </label>
+      </div>
+
+      <div class="result-col">
+        <h3>Resultado de la simulación</h3>
+        <div class="stat-row"><span>Capital solicitado</span><strong id="hi-capital">—</strong></div>
+        <div class="stat-row"><span>Entrada / fondos propios necesarios</span><strong id="hi-entrada">—</strong></div>
+        <div class="stat-row"><span>Tipo de interés aplicado (TIN)</span><strong id="hi-tin">—</strong></div>
+        <div class="stat-row highlight"><span>Cuota mensual</span><strong id="hi-cuota">—</strong></div>
+        <div class="stat-row"><span>Total intereses del préstamo</span><strong id="hi-intereses">—</strong></div>
+        <div class="stat-row"><span>Total pagado (capital + intereses)</span><strong id="hi-total-pagado">—</strong></div>
+
+        <details class="tabla-amortizacion-details">
+          <summary>Ver cuadro de amortización anual</summary>
+          <div class="tabla-scroll">
+            <table class="tabla-amortizacion">
+              <thead><tr><th>Año</th><th>Cuota anual</th><th>Intereses</th><th>Amortizado</th><th>Pendiente</th></tr></thead>
+              <tbody id="hi-tabla-amortizacion"></tbody>
+            </table>
+          </div>
+        </details>
+
+        <h3>Gastos asociados a la hipoteca</h3>
+        <table class="tabla-gastos">
+          <tbody id="hi-tabla-gastos"></tbody>
+          <tfoot>
+            <tr class="total-row"><td>Total gastos hipoteca</td><td id="hi-total-gastos">—</td></tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div class="analisis-bancos">
+      <h3>📊 Análisis: facilidades de cada banco en extinción de condominio</h3>
+      <p class="panel-desc">¿Qué banco financia el 100% de la compensación y cuál exige entrada? Datos recopilados de fuentes públicas y comparadores especializados (ver notas y disclaimer al pie).</p>
+      <div class="tabla-scroll">
+        <table class="tabla-bancos">
+          <thead>
+            <tr><th>Banco</th><th>Financia 100%</th><th>Entrada típica</th><th>Facilidad</th><th>Notas</th></tr>
+          </thead>
+          <tbody id="tabla-analisis-bancos"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== RESUMEN GLOBAL ===================== -->
+  <section id="seccion-resumen" class="panel resumen-global">
+    <h2>📋 Resumen global</h2>
+    <div class="cards-grid">
+      <div class="card"><span>Total gastos extinción</span><strong id="rs-gastos-extincion">—</strong></div>
+      <div class="card"><span>Total gastos hipoteca</span><strong id="rs-gastos-hipoteca">—</strong></div>
+      <div class="card total-card"><span>TOTAL GASTOS</span><strong id="rs-total-gastos">—</strong></div>
+      <div class="card entrada-card"><span>Entrada / efectivo a aportar</span><strong id="rs-entrada">—</strong></div>
+      <div class="card capital-card"><span>Capital final de la hipoteca</span><strong id="rs-capital-final">—</strong></div>
+      <div class="card"><span>Cuota mensual</span><strong id="rs-cuota">—</strong></div>
+      <div class="card"><span>Plazo</span><strong id="rs-plazo">—</strong></div>
+      <div class="card"><span>Total intereses a pagar</span><strong id="rs-intereses">—</strong></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="app-footer">
+  <p><strong>⚠️ Aviso:</strong> Herramienta orientativa, no sustituye el asesoramiento de notaría, gestoría ni un asesor fiscal. Los aranceles notariales/registrales, tipos de interés y condiciones bancarias son estimaciones sujetas a cambio; confirma siempre las cifras exactas antes de decidir. Ver fuentes y fecha de la investigación en <a href="#" id="link-fuentes">notas de datos</a>.</p>
+</footer>
+
+<div id="fuentes-modal">
+  <div class="modal-box">
+    <button type="button" class="cerrar-modal" id="cerrar-fuentes">Cerrar ✕</button>
+    <h3>Notas y fuentes de los datos</h3>
+    <div id="fuentes-contenido"></div>
+  </div>
+</div>
+
+<script src="js/calculos.js"></script>
+<script src="js/fiscalidad-data.js"></script>
+<script src="js/bancos-data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
