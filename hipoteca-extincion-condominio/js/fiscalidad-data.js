@@ -68,5 +68,8 @@ const GASTOS_GENERICOS = {
   gestoriaHipoteca: 0, // desde Ley 5/2019 la asume el banco
   tasacionVivienda: 350, // € orientativo (rango visto: 200-500€), a cargo del cliente
   seguroHogarAnual: 250,
-  seguroVidaAnual: 200
+  seguroVidaAnual: 200,
+  seguroProteccionPagosAnual: 150, // € orientativo (Santander, BBVA mixta, Deutsche mixta...)
+  seguroAmortizacionAnual: 180, // € orientativo (seguro de amortización del préstamo, p.ej. BBVA variable)
+  seguroDesempleoAnual: 150 // € orientativo (p.ej. Abanca EscogeCasa)
 };

@@ -256,6 +256,15 @@
     if (texto.includes('seguro vida') || texto.includes('seguro de vida')) {
       items.push({ concepto: 'Seguro de vida vinculado (orientativo)', importe: GASTOS_GENERICOS.seguroVidaAnual });
     }
+    if (texto.includes('protección de pagos')) {
+      items.push({ concepto: 'Seguro de protección de pagos vinculado (orientativo)', importe: GASTOS_GENERICOS.seguroProteccionPagosAnual });
+    }
+    if (texto.includes('amortización préstamo') || texto.includes('amortización del préstamo')) {
+      items.push({ concepto: 'Seguro de amortización del préstamo vinculado (orientativo)', importe: GASTOS_GENERICOS.seguroAmortizacionAnual });
+    }
+    if (texto.includes('seguro desempleo')) {
+      items.push({ concepto: 'Seguro de desempleo vinculado (orientativo)', importe: GASTOS_GENERICOS.seguroDesempleoAnual });
+    }
     return items;
   }
 

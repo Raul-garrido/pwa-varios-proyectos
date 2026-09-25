@@ -746,7 +746,10 @@ const GASTOS_GENERICOS = {
   gestoriaHipoteca: 0, // desde Ley 5/2019 la asume el banco
   tasacionVivienda: 350, // € orientativo (rango visto: 200-500€), a cargo del cliente
   seguroHogarAnual: 250,
-  seguroVidaAnual: 200
+  seguroVidaAnual: 200,
+  seguroProteccionPagosAnual: 150, // € orientativo (Santander, BBVA mixta, Deutsche mixta...)
+  seguroAmortizacionAnual: 180, // € orientativo (seguro de amortización del préstamo, p.ej. BBVA variable)
+  seguroDesempleoAnual: 150 // € orientativo (p.ej. Abanca EscogeCasa)
 };
 
 </script>
@@ -1244,6 +1247,15 @@ const BANCOS_RESUMEN_METODOLOGICO = `Tras una segunda ronda de investigación mu
     }
     if (texto.includes('seguro vida') || texto.includes('seguro de vida')) {
       items.push({ concepto: 'Seguro de vida vinculado (orientativo)', importe: GASTOS_GENERICOS.seguroVidaAnual });
+    }
+    if (texto.includes('protección de pagos')) {
+      items.push({ concepto: 'Seguro de protección de pagos vinculado (orientativo)', importe: GASTOS_GENERICOS.seguroProteccionPagosAnual });
+    }
+    if (texto.includes('amortización préstamo') || texto.includes('amortización del préstamo')) {
+      items.push({ concepto: 'Seguro de amortización del préstamo vinculado (orientativo)', importe: GASTOS_GENERICOS.seguroAmortizacionAnual });
+    }
+    if (texto.includes('seguro desempleo')) {
+      items.push({ concepto: 'Seguro de desempleo vinculado (orientativo)', importe: GASTOS_GENERICOS.seguroDesempleoAnual });
     }
     return items;
   }
