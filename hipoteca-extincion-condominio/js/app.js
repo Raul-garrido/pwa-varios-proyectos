@@ -244,6 +244,21 @@
     return items;
   }
 
+  // Coste ANUAL (no de formalización) de los seguros que el banco exige domiciliar
+  // para mantener el TIN bonificado mostrado. Se detecta por texto en `vinculaciones`
+  // porque cada banco lo redacta distinto ("seguro hogar", "seguro de hogar Openbank"...).
+  function vinculacionesAnuales(producto) {
+    const items = [];
+    const texto = producto.vinculaciones.join(' | ').toLowerCase();
+    if (texto.includes('seguro hogar') || texto.includes('seguro de hogar') || texto.includes('seguro multirriesgo hogar')) {
+      items.push({ concepto: 'Seguro de hogar vinculado (orientativo)', importe: GASTOS_GENERICOS.seguroHogarAnual });
+    }
+    if (texto.includes('seguro vida') || texto.includes('seguro de vida')) {
+      items.push({ concepto: 'Seguro de vida vinculado (orientativo)', importe: GASTOS_GENERICOS.seguroVidaAnual });
+    }
+    return items;
+  }
+
   function recalcHipoteca() {
     const { banco, producto } = productoActual();
     const tipoOperacion = $('hi-tipo-operacion').value;
@@ -326,9 +341,16 @@
     const totalGastosHipoteca = items.reduce((a, it) => a + it.importe, 0);
     $('hi-total-gastos').textContent = Calc.euro2(totalGastosHipoteca);
 
+    const vinculaciones = vinculacionesAnuales(producto);
+    $('hi-tabla-vinculaciones').innerHTML = vinculaciones.length
+      ? vinculaciones.map(it => `<tr><td>${it.concepto}</td><td>${Calc.euro2(it.importe)}</td></tr>`).join('')
+      : '<tr><td colspan="2" style="text-align:left;font-weight:400;">Este producto no exige seguros vinculados para la bonificación mostrada.</td></tr>';
+    const totalVinculacionesAnual = vinculaciones.reduce((a, it) => a + it.importe, 0);
+    $('hi-total-vinculaciones').textContent = Calc.euro2(totalVinculacionesAnual);
+
     ultimoResultadoHipoteca = {
       capital, entrada, cuotaMensual: amort.cuotaMensual, totalIntereses: amort.totalIntereses,
-      totalPagado: amort.totalPagado, totalGastos: totalGastosHipoteca, plazo
+      totalPagado: amort.totalPagado, totalGastos: totalGastosHipoteca, totalVinculacionesAnual, plazo
     };
     updateResumenGlobal();
   }
@@ -396,6 +418,7 @@
     $('rs-cuota').textContent = hi ? Calc.euro2(hi.cuotaMensual) + ' /mes' : '—';
     $('rs-plazo').textContent = hi ? hi.plazo + ' años' : '—';
     $('rs-intereses').textContent = hi ? Calc.euro(hi.totalIntereses) : '—';
+    $('rs-vinculaciones').textContent = hi ? Calc.euro(hi.totalVinculacionesAnual) + ' /año' : '—';
   }
 
   // ---------------------------------------------------------------------

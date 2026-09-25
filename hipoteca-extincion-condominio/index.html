@@ -171,11 +171,20 @@
           </div>
         </details>
 
-        <h3>Gastos asociados a la hipoteca</h3>
+        <h3>Gastos asociados a la hipoteca (de formalización, pago único)</h3>
         <table class="tabla-gastos">
           <tbody id="hi-tabla-gastos"></tbody>
           <tfoot>
             <tr class="total-row"><td>Total gastos hipoteca</td><td id="hi-total-gastos">—</td></tr>
+          </tfoot>
+        </table>
+
+        <h3>Seguros vinculados a la bonificación (coste anual, recurrente)</h3>
+        <p class="hint">No son un gasto único: hay que pagarlos cada año mientras se quiera mantener el TIN bonificado. Por eso van aparte del total de gastos de formalización.</p>
+        <table class="tabla-gastos">
+          <tbody id="hi-tabla-vinculaciones"></tbody>
+          <tfoot>
+            <tr class="total-row"><td>Total anual de vinculaciones</td><td id="hi-total-vinculaciones">—</td></tr>
           </tfoot>
         </table>
       </div>
@@ -195,6 +204,7 @@
       <div class="card"><span>Cuota mensual</span><strong id="rs-cuota">—</strong></div>
       <div class="card"><span>Plazo</span><strong id="rs-plazo">—</strong></div>
       <div class="card"><span>Total intereses a pagar</span><strong id="rs-intereses">—</strong></div>
+      <div class="card"><span>Seguros vinculados (coste anual)</span><strong id="rs-vinculaciones">—</strong></div>
     </div>
   </section>
 
