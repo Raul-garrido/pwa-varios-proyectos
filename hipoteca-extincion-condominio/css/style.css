@@ -17,8 +17,11 @@
 
 * { box-sizing: border-box; }
 
+html { overflow-x: hidden; }
 body {
   margin: 0;
+  overflow-x: hidden;
+  max-width: 100vw;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background: var(--gris-100);
   color: var(--gris-800);
@@ -179,12 +182,12 @@ fieldset.propietarios-fieldset legend {
 }
 .propietario-row {
   display: grid;
-  grid-template-columns: 1fr 90px 32px;
+  grid-template-columns: minmax(0, 1fr) 90px 32px;
   gap: 8px;
   align-items: center;
   margin-bottom: 10px;
 }
-.propietario-row input { padding: 8px 10px; border: 1px solid var(--gris-400); border-radius: 6px; font-size: 0.88rem; }
+.propietario-row input { width: 100%; min-width: 0; padding: 8px 10px; border: 1px solid var(--gris-400); border-radius: 6px; font-size: 0.88rem; box-sizing: border-box; }
 .propietario-row .btn-remove {
   background: none; border: none; color: var(--rojo); font-size: 1.1rem; cursor: pointer;
   width: 32px; height: 32px;
@@ -224,9 +227,9 @@ fieldset.propietarios-fieldset legend {
 }
 .stat-row.highlight strong { color: var(--verde); font-size: 1.15rem; }
 
-table.tabla-gastos { width: 100%; border-collapse: collapse; font-size: 0.87rem; margin-top: 6px; }
-table.tabla-gastos td { padding: 7px 4px; border-bottom: 1px solid var(--gris-200); }
-table.tabla-gastos td:last-child { text-align: right; font-weight: 600; white-space: nowrap; }
+table.tabla-gastos { width: 100%; border-collapse: collapse; font-size: 0.87rem; margin-top: 6px; table-layout: fixed; }
+table.tabla-gastos td { padding: 7px 4px; border-bottom: 1px solid var(--gris-200); overflow-wrap: anywhere; }
+table.tabla-gastos td:last-child { width: 92px; text-align: right; font-weight: 600; white-space: nowrap; }
 table.tabla-gastos tr.total-row td { font-weight: 700; border-top: 2px solid var(--gris-800); border-bottom: none; padding-top: 10px; color: var(--verde); }
 .nota-fiscal { font-size: 0.78rem; color: var(--gris-600); margin-top: 10px; }
 
@@ -234,13 +237,29 @@ details.tabla-amortizacion-details { margin: 18px 0; }
 details summary {
   cursor: pointer; font-weight: 600; color: var(--verde-claro); font-size: 0.9rem; padding: 6px 0;
 }
-.tabla-scroll { max-height: 320px; overflow-y: auto; margin-top: 8px; border: 1px solid var(--gris-200); border-radius: 8px; }
+.tabla-scroll { max-height: 320px; overflow-y: auto; overflow-x: auto; margin-top: 8px; border: 1px solid var(--gris-200); border-radius: 8px; }
 table.tabla-amortizacion, table.tabla-bancos { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
 table.tabla-amortizacion th, table.tabla-bancos th {
   position: sticky; top: 0; background: var(--gris-800); color: #fff; padding: 8px 10px; text-align: left; font-size: 0.78rem;
 }
-table.tabla-amortizacion td, table.tabla-bancos td { padding: 7px 10px; border-bottom: 1px solid var(--gris-200); white-space: nowrap; }
+table.tabla-amortizacion td { padding: 7px 10px; border-bottom: 1px solid var(--gris-200); white-space: nowrap; }
+table.tabla-bancos td { padding: 7px 10px; border-bottom: 1px solid var(--gris-200); white-space: normal; overflow-wrap: anywhere; }
 table.tabla-amortizacion tr:nth-child(even), table.tabla-bancos tr:nth-child(even) { background: var(--gris-100); }
+
+/* La tabla de bancos tiene una columna de texto largo (Notas): sin table-layout:fixed
+   el navegador intenta ensanchar la tabla para no partir ese texto, y eso desborda
+   la página en móvil. Con columnas de ancho fijo en %, el texto se ve obligado a
+   envolver dentro de su columna en vez de estirar la tabla entera. */
+table.tabla-bancos { table-layout: fixed; min-width: 640px; }
+table.tabla-bancos th:nth-child(1), table.tabla-bancos td:nth-child(1) { width: 14%; }
+table.tabla-bancos th:nth-child(2), table.tabla-bancos td:nth-child(2) { width: 13%; }
+table.tabla-bancos th:nth-child(3), table.tabla-bancos td:nth-child(3) { width: 12%; }
+table.tabla-bancos th:nth-child(4), table.tabla-bancos td:nth-child(4) { width: 12%; }
+table.tabla-bancos th:nth-child(5), table.tabla-bancos td:nth-child(5) { width: 49%; }
+/* Contenedores flex/grid no encogen por debajo del contenido de una tabla salvo que
+   se les diga explícitamente; sin esto, la tabla ancha desborda toda la página en
+   móvil aunque su propio contenedor tenga overflow-x:auto. */
+main, .panel, .grid-2col, .form-col, .result-col { min-width: 0; }
 
 td.facilidad-alta { color: var(--verde); font-weight: 700; }
 td.facilidad-media { color: var(--naranja); font-weight: 700; }
