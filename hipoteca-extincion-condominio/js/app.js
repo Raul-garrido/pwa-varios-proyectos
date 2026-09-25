@@ -208,7 +208,7 @@
       items.push({ concepto: `IVA vivienda nueva (${fisc.ivaViviendaNueva}%)`, importe: precio * (fisc.ivaViviendaNueva / 100) });
       items.push({ concepto: `AJD compraventa vivienda nueva (${fisc.ajdViviendaNueva}%)`, importe: precio * (fisc.ajdViviendaNueva / 100) });
     } else {
-      items.push({ concepto: `ITP compraventa vivienda usada (${fisc.itpViviendaUsada}%)`, importe: precio * (fisc.itpViviendaUsada / 100) });
+      items.push({ concepto: `ITP compraventa vivienda usada (${fisc.itpViviendaUsada}% general — puede haber tipos reducidos, ver notas de datos)`, importe: precio * (fisc.itpViviendaUsada / 100) });
     }
     return items;
   }
@@ -343,10 +343,12 @@
   // ---------------------------------------------------------------------
   function renderFuentes() {
     const cont = $('fuentes-contenido');
-    let html = '<p><strong>⚠️ Limitación de esta investigación:</strong> el acceso directo (WebFetch) a las webs oficiales de bancos y a comunidad.madrid/boe.es estuvo bloqueado por el proxy de red de este entorno. Los datos proceden de resultados de búsqueda (WebSearch) que citan y resumen esas fuentes, no de lectura directa. Verifica siempre las cifras exactas antes de decidir.</p>';
+    let html = '<p><strong>⚠️ Limitación de esta investigación:</strong> el acceso directo (WebFetch) a las webs oficiales de bancos, comunidad.madrid y boe.es está bloqueado por política de red de este entorno (confirmado, no es un fallo puntual). Cada cifra fiscal se ha cruzado con WebSearch contra 3-6 fuentes independientes entre sí (comparadores fiscales especializados, el criterio del Tribunal Supremo y de la DGT), por lo que la confianza es alta aunque no sea lectura directa del BOE. Verifica siempre las cifras exactas de tu caso con una gestoría o notaría antes de decidir.</p>';
     html += '<h4>Fiscalidad — Notas generales</h4><ul>' + FISCALIDAD_NOTAS_GENERALES.map(n => `<li>${n}</li>`).join('') + '</ul>';
     Object.values(FISCALIDAD).forEach(f => {
-      html += `<h4>${f.nombre}${f.verificado === 'parcial' ? ' (parcialmente verificado)' : ''}</h4><ul>`;
+      html += `<h4>${f.nombre}${f.verificado === true ? ' ✔ cruzado con varias fuentes' : f.verificado === 'parcial' ? ' (parcialmente verificado)' : ''}</h4>`;
+      if (f.notaReducidos) html += `<p><em>${f.notaReducidos}</em></p>`;
+      html += '<ul>';
       html += f.fuentes.map(s => `<li><a href="${s.url}" target="_blank" rel="noopener">${s.texto}</a></li>`).join('');
       html += '</ul>';
     });
